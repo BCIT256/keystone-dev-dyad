@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Task, TaskCompletion } from '../types';
 import { TaskRepository } from '../api/taskRepository';
-import { format, getDay, differenceInCalendarWeeks, parseISO, addDays, subDays } from 'date-fns';
+import { format, getDay, getDate, addDays, subDays } from 'date-fns';
 
 interface TaskState {
   tasks: Task[];
@@ -16,6 +16,10 @@ interface TaskState {
   previousDay: () => void;
   setCurrentDate: (date: Date) => void;
 }
+
+const getWeekOfMonth = (date: Date): number => {
+  return Math.ceil(getDate(date) / 7);
+};
 
 export const useTaskStore = create<TaskState>((set, get) => ({
   tasks: [],
@@ -34,23 +38,35 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
   getTasksForDate: (date: Date) => {
     const { tasks, completions } = get();
-    const dayOfWeek = getDay(date); // Sunday = 0, Monday = 1, etc.
+    const dayOfWeek = getDay(date);
+    const dayOfMonth = getDate(date);
+    const weekOfMonth = getWeekOfMonth(date);
     const dateString = format(date, 'yyyy-MM-dd');
 
-    const dailyTasks = tasks.filter(t => t.recurrence.type === 'daily');
-    const weeklyTasks = tasks.filter(t => t.recurrence.type === 'weekly' && t.recurrence.dayOfWeek === dayOfWeek);
-    const biweeklyTasks = tasks.filter(t => {
-      if (t.recurrence.type !== 'biweekly' || t.recurrence.dayOfWeek !== dayOfWeek) {
-        return false;
+    const tasksForDate = tasks.filter(t => {
+      switch (t.recurrence.type) {
+        case 'daily':
+          return true;
+        case 'weekly':
+          return t.recurrence.dayOfWeek === dayOfWeek;
+        case 'biweekly': {
+          if (t.recurrence.dayOfWeek !== dayOfWeek) return false;
+          if (t.recurrence.biweeklyWeeks === 'first_third') {
+            return weekOfMonth === 1 || weekOfMonth === 3;
+          }
+          if (t.recurrence.biweeklyWeeks === 'second_fourth') {
+            return weekOfMonth === 2 || weekOfMonth === 4;
+          }
+          return false;
+        }
+        case 'monthly':
+          return t.recurrence.dayOfMonth === dayOfMonth;
+        default:
+          return false;
       }
-      const taskStartDate = parseISO(t.createdAt);
-      const weeksDifference = differenceInCalendarWeeks(date, taskStartDate, { weekStartsOn: 0 /* Sunday */ });
-      return weeksDifference % 2 === 0;
     });
 
-    const allTasksForDate = [...new Set([...dailyTasks, ...weeklyTasks, ...biweeklyTasks])];
-
-    return allTasksForDate.map(task => {
+    return tasksForDate.map(task => {
       const isComplete = completions.some(c => c.taskId === task.id && c.completionDate === dateString);
       return { task, isComplete };
     }).sort((a, b) => a.task.title.localeCompare(b.task.title));

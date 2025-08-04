@@ -31,10 +31,17 @@ const mockTasks: Task[] = [
     id: '4',
     userId: 'user-1',
     title: 'Take out recycling',
-    // Use a fixed past date for consistent bi-weekly calculation
-    recurrence: { type: 'biweekly', dayOfWeek: 2 }, // Tuesday
+    recurrence: { type: 'biweekly', dayOfWeek: 2, biweeklyWeeks: 'second_fourth' }, // 2nd & 4th Tuesday
     dueTime: '19:00',
-    createdAt: new Date('2024-01-02').toISOString(),
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: '5',
+    userId: 'user-1',
+    title: 'Pay rent',
+    recurrence: { type: 'monthly', dayOfMonth: 1 }, // 1st of the month
+    dueTime: 'all_day',
+    createdAt: new Date().toISOString(),
   },
 ];
 

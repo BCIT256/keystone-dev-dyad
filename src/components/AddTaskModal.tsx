@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTaskStore } from '@/state/taskStore';
 import { RecurrenceType, Task } from '@/types';
 import { Checkbox } from './ui/checkbox';
+import { showError } from '@/utils/toast';
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -29,27 +30,61 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
   const [title, setTitle] = useState('');
   const [recurrenceType, setRecurrenceType] = useState<RecurrenceType>('daily');
   const [dayOfWeek, setDayOfWeek] = useState<string>('1');
+  const [biweeklyWeeks, setBiweeklyWeeks] = useState<'first_third' | 'second_fourth'>('first_third');
+  const [dayOfMonth, setDayOfMonth] = useState<string>('1');
   const [isAllDay, setIsAllDay] = useState(true);
   const [time, setTime] = useState('09:00');
 
+  const resetForm = () => {
+    setTitle('');
+    setRecurrenceType('daily');
+    setDayOfWeek('1');
+    setBiweeklyWeeks('first_third');
+    setDayOfMonth('1');
+    setIsAllDay(true);
+    setTime('09:00');
+  };
+
   const handleSave = () => {
-    if (!title.trim()) return;
+    if (!title.trim()) {
+      showError("Please enter a title for the task.");
+      return;
+    }
+
+    let recurrence: Task['recurrence'];
+
+    switch (recurrenceType) {
+      case 'daily':
+        recurrence = { type: 'daily' };
+        break;
+      case 'weekly':
+        recurrence = { type: 'weekly', dayOfWeek: parseInt(dayOfWeek, 10) };
+        break;
+      case 'biweekly':
+        recurrence = { type: 'biweekly', dayOfWeek: parseInt(dayOfWeek, 10), biweeklyWeeks };
+        break;
+      case 'monthly': {
+        const day = parseInt(dayOfMonth, 10);
+        if (isNaN(day) || day < 1 || day > 31) {
+          showError("Please enter a valid day of the month (1-31).");
+          return;
+        }
+        recurrence = { type: 'monthly', dayOfMonth: day };
+        break;
+      }
+      default:
+        return;
+    }
 
     const taskData: Omit<Task, 'id' | 'userId' | 'createdAt'> = {
       title,
-      recurrence: {
-        type: recurrenceType,
-        ...(recurrenceType !== 'daily' && { dayOfWeek: parseInt(dayOfWeek, 10) }),
-      },
+      recurrence,
       dueTime: recurrenceType === 'daily' ? (isAllDay ? 'all_day' : time) : undefined,
     };
 
     addTask(taskData);
     onClose();
-    // Reset form
-    setTitle('');
-    setRecurrenceType('daily');
-    setIsAllDay(true);
+    resetForm();
   };
 
   return (
@@ -87,9 +122,13 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                 <RadioGroupItem value="biweekly" id="r3" />
                 <Label htmlFor="r3">Bi-weekly</Label>
               </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="monthly" id="r4" />
+                <Label htmlFor="r4">Monthly</Label>
+              </div>
             </RadioGroup>
           </div>
-          {recurrenceType !== 'daily' && (
+          {(recurrenceType === 'weekly' || recurrenceType === 'biweekly') && (
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="day" className="text-right">
                 Day
@@ -104,6 +143,27 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          )}
+          {recurrenceType === 'biweekly' && (
+            <div className="grid grid-cols-4 items-start gap-4 pt-2">
+              <Label className="text-right pt-2">Weeks</Label>
+              <RadioGroup value={biweeklyWeeks} onValueChange={(v) => setBiweeklyWeeks(v as any)} className="col-span-3 flex flex-col gap-3">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="first_third" id="bw1" />
+                  <Label htmlFor="bw1">1st & 3rd week of month</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="second_fourth" id="bw2" />
+                  <Label htmlFor="bw2">2nd & 4th week of month</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
+          {recurrenceType === 'monthly' && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="dayOfMonth" className="text-right">Day of Month</Label>
+              <Input id="dayOfMonth" type="number" min="1" max="31" value={dayOfMonth} onChange={e => setDayOfMonth(e.target.value)} className="col-span-3" />
             </div>
           )}
           {recurrenceType === 'daily' && (
