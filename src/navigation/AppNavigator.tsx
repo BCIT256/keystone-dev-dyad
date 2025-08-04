@@ -3,6 +3,9 @@ import { Home, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTaskStore } from "@/state/taskStore";
 import { AdBanner } from "@/components/AdBanner";
+import { PageTransition } from "@/components/PageTransition";
+import { AnimatePresence } from "framer-motion";
+import { useLocation } from "react-router-dom";
 
 const navItems = [
   { href: "/", label: "Today", icon: Home },
@@ -11,11 +14,16 @@ const navItems = [
 
 export default function AppNavigator() {
   const { adsVisible } = useTaskStore();
+  const location = useLocation();
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/40">
       <main className="flex-grow flex flex-col">
-        <Outlet />
+        <AnimatePresence mode="wait">
+          <PageTransition key={location.pathname}>
+            <Outlet />
+          </PageTransition>
+        </AnimatePresence>
       </main>
       {adsVisible && <AdBanner />}
       <footer className="bg-background border-t z-20">
