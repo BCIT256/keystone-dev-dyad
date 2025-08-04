@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -32,8 +32,15 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
   const [dayOfWeek, setDayOfWeek] = useState<string>('1');
   const [biweeklyWeeks, setBiweeklyWeeks] = useState<'first_third' | 'second_fourth'>('first_third');
   const [dayOfMonth, setDayOfMonth] = useState<string>('1');
+  const [useLastDay, setUseLastDay] = useState(false);
   const [isAllDay, setIsAllDay] = useState(true);
   const [time, setTime] = useState('09:00');
+
+  useEffect(() => {
+    if (recurrenceType !== 'monthly' || !['29', '30', '31'].includes(dayOfMonth)) {
+      setUseLastDay(false);
+    }
+  }, [recurrenceType, dayOfMonth]);
 
   const resetForm = () => {
     setTitle('');
@@ -41,6 +48,7 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
     setDayOfWeek('1');
     setBiweeklyWeeks('first_third');
     setDayOfMonth('1');
+    setUseLastDay(false);
     setIsAllDay(true);
     setTime('09:00');
   };
@@ -69,7 +77,11 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
           showError("Please enter a valid day of the month (1-31).");
           return;
         }
-        recurrence = { type: 'monthly', dayOfMonth: day };
+        recurrence = { 
+          type: 'monthly', 
+          dayOfMonth: day,
+          isLastDayOfMonth: ['29', '30', '31'].includes(dayOfMonth) && useLastDay
+        };
         break;
       }
       default:
@@ -161,10 +173,21 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
             </div>
           )}
           {recurrenceType === 'monthly' && (
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="dayOfMonth" className="text-right">Day of Month</Label>
-              <Input id="dayOfMonth" type="number" min="1" max="31" value={dayOfMonth} onChange={e => setDayOfMonth(e.target.value)} className="col-span-3" />
-            </div>
+            <>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="dayOfMonth" className="text-right">Day of Month</Label>
+                <Input id="dayOfMonth" type="number" min="1" max="31" value={dayOfMonth} onChange={e => setDayOfMonth(e.target.value)} className="col-span-3" />
+              </div>
+              {['29', '30', '31'].includes(dayOfMonth) && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <div/>
+                  <div className="col-span-3 flex items-center space-x-2">
+                    <Checkbox id="last-day" checked={useLastDay} onCheckedChange={(checked) => setUseLastDay(Boolean(checked))} />
+                    <Label htmlFor="last-day" className="font-normal">Adjust for shorter months</Label>
+                  </div>
+                </div>
+              )}
+            </>
           )}
           {recurrenceType === 'daily' && (
             <>

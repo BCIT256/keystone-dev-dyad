@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Task, TaskCompletion } from '../types';
 import { TaskRepository } from '../api/taskRepository';
-import { format, getDay, getDate, addDays, subDays } from 'date-fns';
+import { format, getDay, getDate, addDays, subDays, isLastDayOfMonth, endOfMonth } from 'date-fns';
 
 interface TaskState {
   tasks: Task[];
@@ -59,8 +59,23 @@ export const useTaskStore = create<TaskState>((set, get) => ({
           }
           return false;
         }
-        case 'monthly':
-          return t.recurrence.dayOfMonth === dayOfMonth;
+        case 'monthly': {
+          const taskDay = t.recurrence.dayOfMonth;
+          if (!taskDay) return false;
+
+          // Standard check for the exact day
+          if (taskDay === dayOfMonth) return true;
+
+          // Fallback check for "last day of month" option
+          if (t.recurrence.isLastDayOfMonth) {
+            const lastDayOfCurrentMonth = endOfMonth(date).getDate();
+            if (taskDay > lastDayOfCurrentMonth && isLastDayOfMonth(date)) {
+              return true;
+            }
+          }
+          
+          return false;
+        }
         default:
           return false;
       }
