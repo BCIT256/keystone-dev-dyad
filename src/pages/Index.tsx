@@ -1,19 +1,9 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import HomeScreen from "./HomeScreen";
 
-import { MadeWithDyad } from "@/components/made-with-dyad";
-
+// This file serves as the entry point for the main route, as per project conventions.
+// It simply renders the HomeScreen component.
 const Index = () => {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">
-          Start building your amazing project here!
-        </p>
-      </div>
-      <MadeWithDyad />
-    </div>
-  );
+  return <HomeScreen />;
 };
 
 export default Index;
