@@ -3,7 +3,7 @@ import { Button } from './ui/button';
 
 export function AdBanner() {
   return (
-    <div className="fixed bottom-20 left-0 right-0 bg-gray-100 dark:bg-gray-800 p-2 border-t border-b z-10">
+    <div className="bg-gray-100 dark:bg-gray-800 p-2 border-t border-b z-10">
       <div className="container mx-auto flex items-center justify-between max-w-lg px-4">
         <p className="text-sm text-muted-foreground">
           Enjoy an ad-free experience.

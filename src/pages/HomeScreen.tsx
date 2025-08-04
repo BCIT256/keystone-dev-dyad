@@ -8,7 +8,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DevDateControls } from '@/components/DevDateControls';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -30,14 +29,17 @@ export default function HomeScreen() {
   const scheduledTasks = tasksForDate.filter(t => t.task.recurrence.type !== 'daily');
 
   return (
-    <div className={cn("container mx-auto p-4 md:p-8", adsVisible ? "pb-32" : "pb-24")}>
+    <div className="container mx-auto p-4 md:p-8 flex flex-col flex-grow">
       <header className="mb-8">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{getGreeting()}, User</h1>
         <p className="text-muted-foreground text-base sm:text-lg">{format(currentDate, 'EEEE, MMMM d, yyyy')}</p>
       </header>
 
-      <main>
-        <DevDateControls />
+      <div className="my-8 flex justify-center">
+        <img src="/placeholder.svg" alt="Artwork" className="w-full max-w-md h-48 object-cover rounded-lg bg-muted" />
+      </div>
+
+      <main className="flex flex-col flex-grow">
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
@@ -80,6 +82,12 @@ export default function HomeScreen() {
             )}
           </CardContent>
         </Card>
+
+        <div className="flex-grow" />
+
+        <div className="pt-8">
+          <DevDateControls />
+        </div>
       </main>
 
       <AddTaskButton onClick={() => setIsModalOpen(true)} adsVisible={adsVisible} />

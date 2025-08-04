@@ -14,11 +14,11 @@ export default function AppNavigator() {
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/40">
-      <main className="flex-grow">
+      <main className="flex-grow flex flex-col">
         <Outlet />
       </main>
       {adsVisible && <AdBanner />}
-      <footer className="fixed bottom-0 left-0 right-0 bg-background border-t z-20">
+      <footer className="bg-background border-t z-20">
         <nav className="container mx-auto flex justify-around items-center h-20 max-w-lg">
           {navItems.map(({ href, label, icon: Icon }) => (
             <NavLink
