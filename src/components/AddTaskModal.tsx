@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import { HelpCircle } from 'lucide-react';
+import { getRandomTaskExample } from '@/lib/taskExamples';
 
 const weekDays = [
   { value: '0', label: 'Sunday' }, { value: '1', label: 'Monday' }, { value: '2', label: 'Tuesday' },
@@ -49,6 +50,7 @@ interface AddTaskModalProps {
 
 export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
   const addTask = useTaskStore(state => state.addTask);
+  const [placeholder, setPlaceholder] = useState('');
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -69,6 +71,7 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
   useEffect(() => {
     if (isOpen) {
       form.reset();
+      setPlaceholder(getRandomTaskExample());
     }
   }, [isOpen, form]);
 
@@ -112,7 +115,7 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
             <FormField control={form.control} name="title" render={({ field }) => (
               <FormItem>
                 <FormLabel>Title</FormLabel>
-                <FormControl><Input placeholder="e.g. Walk the dog" {...field} /></FormControl>
+                <FormControl><Input placeholder={placeholder} {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
