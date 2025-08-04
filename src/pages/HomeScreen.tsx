@@ -31,34 +31,34 @@ export default function HomeScreen() {
   return (
     <div className="container mx-auto p-4 md:p-8 flex flex-col flex-grow">
       <header className="mb-8">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{getGreeting()}, User</h1>
-        <p className="text-muted-foreground text-base sm:text-lg">{format(currentDate, 'EEEE, MMMM d, yyyy')}</p>
+        <h1 className="text-4xl font-bold tracking-tighter">{getGreeting()}, User</h1>
+        <p className="text-lg text-muted-foreground mt-2">{format(currentDate, 'EEEE, MMMM d, yyyy')}</p>
       </header>
 
       <div className="my-8 flex justify-center">
-        <img src="/placeholder.svg" alt="Artwork" className="w-full max-w-md h-48 object-cover rounded-lg bg-muted" />
+        <img src="/placeholder.svg" alt="Artwork" className="w-full max-w-md h-56 object-cover rounded-xl bg-muted" />
       </div>
 
       <main className="flex flex-col flex-grow">
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>Today's Agenda</CardTitle>
+              <CardTitle className="text-xl">Today's Agenda</CardTitle>
               <p className="text-sm text-muted-foreground">🔥 5-day streak!</p>
             </div>
           </CardHeader>
           <CardContent className="p-0">
             {isLoading ? (
               <div className="space-y-4 p-6">
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full rounded-lg" />
+                <Skeleton className="h-16 w-full rounded-lg" />
+                <Skeleton className="h-16 w-full rounded-lg" />
               </div>
             ) : tasksForDate.length > 0 ? (
               <div className="space-y-2">
                 {dailyTasks.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground px-4 pt-4 pb-2">Daily Habits</h3>
+                    <h3 className="text-sm font-semibold text-muted-foreground px-6 pt-4 pb-2">Daily Habits</h3>
                     {dailyTasks.map(({ task, isComplete }) => (
                       <TaskItem key={task.id} task={task} isComplete={isComplete} />
                     ))}
@@ -67,7 +67,7 @@ export default function HomeScreen() {
                 {dailyTasks.length > 0 && scheduledTasks.length > 0 && <Separator />}
                 {scheduledTasks.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground px-4 pt-4 pb-2">Scheduled Tasks</h3>
+                    <h3 className="text-sm font-semibold text-muted-foreground px-6 pt-4 pb-2">Scheduled Tasks</h3>
                     {scheduledTasks.map(({ task, isComplete }) => (
                       <TaskItem key={task.id} task={task} isComplete={isComplete} />
                     ))}
@@ -75,9 +75,9 @@ export default function HomeScreen() {
                 )}
               </div>
             ) : (
-              <div className="text-center py-12 px-6">
+              <div className="text-center p-8">
                 <p className="text-lg text-muted-foreground">All clear for this day!</p>
-                <p className="text-sm text-muted-foreground">Add a new task to get started.</p>
+                <p className="text-sm text-muted-foreground mt-2">Add a new task to get started.</p>
               </div>
             )}
           </CardContent>

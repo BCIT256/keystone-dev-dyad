@@ -16,7 +16,7 @@ export function TaskItem({ task, isComplete }: TaskItemProps) {
   };
 
   return (
-    <div className="flex items-center space-x-4 p-4 border-b">
+    <div className="flex items-center space-x-4 px-6 py-4 border-b">
       <Checkbox
         id={`${task.id}-${currentDate}`}
         checked={isComplete}
@@ -26,7 +26,7 @@ export function TaskItem({ task, isComplete }: TaskItemProps) {
       <label
         htmlFor={`${task.id}-${currentDate}`}
         className={cn(
-          "text-lg font-medium leading-none cursor-pointer",
+          "text-base font-normal leading-none cursor-pointer",
           isComplete && "line-through text-muted-foreground"
         )}
       >
