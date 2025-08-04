@@ -13,6 +13,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
+import { HelpCircle } from 'lucide-react';
 
 const weekDays = [
   { value: '0', label: 'Sunday' }, { value: '1', label: 'Monday' }, { value: '2', label: 'Tuesday' },
@@ -175,7 +176,19 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                       <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel>Adjust for shorter months</FormLabel>
+                        <div className="flex items-center gap-1.5">
+                          <FormLabel>End of Month</FormLabel>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger type="button" onClick={(e) => e.preventDefault()}>
+                                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Adjusts for shorter months (e.g., 30 days).</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <p className="text-sm text-muted-foreground">Ensures this task appears on the last day of every month.</p>
                       </div>
                     </FormItem>
