@@ -7,6 +7,7 @@ import { AddTaskModal } from '@/components/AddTaskModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DevDateControls } from '@/components/DevDateControls';
+import { Separator } from '@/components/ui/separator';
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -24,6 +25,8 @@ export default function HomeScreen() {
   }, [fetchTasks]);
 
   const tasksForDate = getTasksForDate(currentDate);
+  const dailyTasks = tasksForDate.filter(t => t.task.recurrence.type === 'daily');
+  const scheduledTasks = tasksForDate.filter(t => t.task.recurrence.type !== 'daily');
 
   return (
     <div className="container mx-auto p-4 md:p-8 pb-24">
@@ -37,7 +40,7 @@ export default function HomeScreen() {
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>Tasks for this day</CardTitle>
+              <CardTitle>Today's Agenda</CardTitle>
               <p className="text-sm text-muted-foreground">🔥 5-day streak!</p>
             </div>
           </CardHeader>
@@ -49,10 +52,24 @@ export default function HomeScreen() {
                 <Skeleton className="h-16 w-full" />
               </div>
             ) : tasksForDate.length > 0 ? (
-              <div>
-                {tasksForDate.map(({ task, isComplete }) => (
-                  <TaskItem key={task.id} task={task} isComplete={isComplete} />
-                ))}
+              <div className="space-y-2">
+                {dailyTasks.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-muted-foreground px-4 pt-4 pb-2">Daily Habits</h3>
+                    {dailyTasks.map(({ task, isComplete }) => (
+                      <TaskItem key={task.id} task={task} isComplete={isComplete} />
+                    ))}
+                  </div>
+                )}
+                {dailyTasks.length > 0 && scheduledTasks.length > 0 && <Separator />}
+                {scheduledTasks.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-muted-foreground px-4 pt-4 pb-2">Scheduled Tasks</h3>
+                    {scheduledTasks.map(({ task, isComplete }) => (
+                      <TaskItem key={task.id} task={task} isComplete={isComplete} />
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="text-center py-12 px-6">

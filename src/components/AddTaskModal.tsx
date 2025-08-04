@@ -68,12 +68,12 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
             </Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-3" placeholder="e.g. Walk the dog" />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Recurrence</Label>
+          <div className="grid grid-cols-4 items-start gap-4 pt-2">
+            <Label className="text-right pt-2">Recurrence</Label>
             <RadioGroup
               value={recurrenceType}
               onValueChange={(value: string) => setRecurrenceType(value as RecurrenceType)}
-              className="col-span-3 flex gap-4"
+              className="col-span-3 flex flex-col gap-3"
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="daily" id="r1" />
@@ -83,9 +83,13 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                 <RadioGroupItem value="weekly" id="r2" />
                 <Label htmlFor="r2">Weekly</Label>
               </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="biweekly" id="r3" />
+                <Label htmlFor="r3">Bi-weekly</Label>
+              </div>
             </RadioGroup>
           </div>
-          {recurrenceType === 'weekly' && (
+          {recurrenceType !== 'daily' && (
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="day" className="text-right">
                 Day
