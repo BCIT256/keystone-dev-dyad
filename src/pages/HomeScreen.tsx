@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DevDateControls } from '@/components/DevDateControls';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -17,7 +18,7 @@ const getGreeting = () => {
 };
 
 export default function HomeScreen() {
-  const { fetchTasks, getTasksForDate, isLoading, currentDate } = useTaskStore();
+  const { fetchTasks, getTasksForDate, isLoading, currentDate, adsVisible } = useTaskStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
@@ -29,7 +30,7 @@ export default function HomeScreen() {
   const scheduledTasks = tasksForDate.filter(t => t.task.recurrence.type !== 'daily');
 
   return (
-    <div className="container mx-auto p-4 md:p-8 pb-24">
+    <div className={cn("container mx-auto p-4 md:p-8", adsVisible ? "pb-32" : "pb-24")}>
       <header className="mb-8">
         <h1 className="text-4xl font-bold tracking-tight">{getGreeting()}, User</h1>
         <p className="text-muted-foreground text-lg">{format(currentDate, 'EEEE, MMMM d, yyyy')}</p>
@@ -81,7 +82,7 @@ export default function HomeScreen() {
         </Card>
       </main>
 
-      <AddTaskButton onClick={() => setIsModalOpen(true)} />
+      <AddTaskButton onClick={() => setIsModalOpen(true)} adsVisible={adsVisible} />
       <AddTaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
