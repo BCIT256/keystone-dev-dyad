@@ -12,8 +12,8 @@ export function AddTaskButton({ onClick, adsVisible }: AddTaskButtonProps) {
     <Button
       onClick={onClick}
       className={cn(
-        "fixed right-8 h-16 w-16 rounded-full shadow-lg z-10",
-        adsVisible ? "bottom-32" : "bottom-24"
+        "fixed right-8 h-16 w-16 rounded-full shadow-lg z-20",
+        adsVisible ? "bottom-36" : "bottom-24"
       )}
       aria-label="Add new task"
     >
