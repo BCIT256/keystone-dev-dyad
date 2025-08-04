@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTaskStore } from '@/state/taskStore';
 import { RecurrenceType, Task } from '@/types';
+import { Checkbox } from './ui/checkbox';
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -28,6 +29,8 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
   const [title, setTitle] = useState('');
   const [recurrenceType, setRecurrenceType] = useState<RecurrenceType>('daily');
   const [dayOfWeek, setDayOfWeek] = useState<string>('1');
+  const [isAllDay, setIsAllDay] = useState(true);
+  const [time, setTime] = useState('09:00');
 
   const handleSave = () => {
     if (!title.trim()) return;
@@ -38,13 +41,15 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
         type: recurrenceType,
         ...(recurrenceType !== 'daily' && { dayOfWeek: parseInt(dayOfWeek, 10) }),
       },
-      dueTime: 'all_day', // Simplified for now
+      dueTime: recurrenceType === 'daily' ? (isAllDay ? 'all_day' : time) : undefined,
     };
 
     addTask(taskData);
     onClose();
+    // Reset form
     setTitle('');
     setRecurrenceType('daily');
+    setIsAllDay(true);
   };
 
   return (
@@ -96,6 +101,25 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                 </SelectContent>
               </Select>
             </div>
+          )}
+          {recurrenceType === 'daily' && (
+            <>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Time</Label>
+                <div className="col-span-3 flex items-center space-x-2">
+                  <Checkbox id="all-day" checked={isAllDay} onCheckedChange={(checked) => setIsAllDay(Boolean(checked))} />
+                  <Label htmlFor="all-day">All day</Label>
+                </div>
+              </div>
+              {!isAllDay && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="due-time" className="text-right">
+                    Due at
+                  </Label>
+                  <Input id="due-time" type="time" value={time} onChange={e => setTime(e.target.value)} className="col-span-3" />
+                </div>
+              )}
+            </>
           )}
         </div>
         <DialogFooter>

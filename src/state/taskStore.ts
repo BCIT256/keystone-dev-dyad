@@ -1,22 +1,27 @@
 import { create } from 'zustand';
 import { Task, TaskCompletion } from '../types';
 import { TaskRepository } from '../api/taskRepository';
-import { format, getDay, differenceInCalendarWeeks, parseISO } from 'date-fns';
+import { format, getDay, differenceInCalendarWeeks, parseISO, addDays, subDays } from 'date-fns';
 
 interface TaskState {
   tasks: Task[];
   completions: TaskCompletion[];
   isLoading: boolean;
+  currentDate: Date;
   getTasksForDate: (date: Date) => { task: Task; isComplete: boolean }[];
   addTask: (task: Omit<Task, 'id' | 'userId' | 'createdAt'>) => Promise<void>;
   toggleTaskCompletion: (taskId: string, date: Date) => void;
   fetchTasks: () => Promise<void>;
+  nextDay: () => void;
+  previousDay: () => void;
+  setCurrentDate: (date: Date) => void;
 }
 
 export const useTaskStore = create<TaskState>((set, get) => ({
   tasks: [],
   completions: [],
   isLoading: true,
+  currentDate: new Date(),
 
   fetchTasks: async () => {
     set({ isLoading: true });
@@ -72,5 +77,17 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         completions: [...state.completions, newCompletion],
       }));
     }
+  },
+
+  nextDay: () => {
+    set(state => ({ currentDate: addDays(state.currentDate, 1) }));
+  },
+
+  previousDay: () => {
+    set(state => ({ currentDate: subDays(state.currentDate, 1) }));
+  },
+
+  setCurrentDate: (date: Date) => {
+    set({ currentDate: date });
   },
 }));

@@ -6,6 +6,7 @@ import { AddTaskButton } from '@/components/AddTaskButton';
 import { AddTaskModal } from '@/components/AddTaskModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DevDateControls } from '@/components/DevDateControls';
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -15,28 +16,28 @@ const getGreeting = () => {
 };
 
 export default function HomeScreen() {
-  const { fetchTasks, getTasksForDate, isLoading } = useTaskStore();
+  const { fetchTasks, getTasksForDate, isLoading, currentDate } = useTaskStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
 
-  const today = new Date();
-  const tasksForToday = getTasksForDate(today);
+  const tasksForDate = getTasksForDate(currentDate);
 
   return (
     <div className="container mx-auto p-4 md:p-8 pb-24">
       <header className="mb-8">
         <h1 className="text-4xl font-bold tracking-tight">{getGreeting()}, User</h1>
-        <p className="text-muted-foreground text-lg">{format(today, 'EEEE, MMMM d')}</p>
+        <p className="text-muted-foreground text-lg">{format(currentDate, 'EEEE, MMMM d, yyyy')}</p>
       </header>
 
       <main>
+        <DevDateControls />
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>Today's Tasks</CardTitle>
+              <CardTitle>Tasks for this day</CardTitle>
               <p className="text-sm text-muted-foreground">🔥 5-day streak!</p>
             </div>
           </CardHeader>
@@ -47,15 +48,15 @@ export default function HomeScreen() {
                 <Skeleton className="h-16 w-full" />
                 <Skeleton className="h-16 w-full" />
               </div>
-            ) : tasksForToday.length > 0 ? (
+            ) : tasksForDate.length > 0 ? (
               <div>
-                {tasksForToday.map(({ task, isComplete }) => (
+                {tasksForDate.map(({ task, isComplete }) => (
                   <TaskItem key={task.id} task={task} isComplete={isComplete} />
                 ))}
               </div>
             ) : (
               <div className="text-center py-12 px-6">
-                <p className="text-lg text-muted-foreground">All clear for today!</p>
+                <p className="text-lg text-muted-foreground">All clear for this day!</p>
                 <p className="text-sm text-muted-foreground">Add a new task to get started.</p>
               </div>
             )}
