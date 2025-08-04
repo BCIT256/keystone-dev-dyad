@@ -1,4 +1,4 @@
-import create from 'zustand';
+import { create } from 'zustand';
 import { Task, TaskCompletion } from '../types';
 import { TaskRepository } from '../api/taskRepository';
 import { format, getDay, differenceInCalendarWeeks, parseISO } from 'date-fns';
