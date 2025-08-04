@@ -9,6 +9,7 @@ import { useTaskStore } from '@/state/taskStore';
 import { RecurrenceType, Task } from '@/types';
 import { Checkbox } from './ui/checkbox';
 import { showError } from '@/utils/toast';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -37,7 +38,7 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
   const [time, setTime] = useState('09:00');
 
   useEffect(() => {
-    if (recurrenceType !== 'monthly' || !['29', '30', '31'].includes(dayOfMonth)) {
+    if (recurrenceType !== 'monthly' || dayOfMonth !== '31') {
       setUseLastDay(false);
     }
   }, [recurrenceType, dayOfMonth]);
@@ -80,7 +81,7 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
         recurrence = { 
           type: 'monthly', 
           dayOfMonth: day,
-          isLastDayOfMonth: ['29', '30', '31'].includes(dayOfMonth) && useLastDay
+          isLastDayOfMonth: dayOfMonth === '31' && useLastDay
         };
         break;
       }
@@ -178,12 +179,21 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                 <Label htmlFor="dayOfMonth" className="text-right">Day of Month</Label>
                 <Input id="dayOfMonth" type="number" min="1" max="31" value={dayOfMonth} onChange={e => setDayOfMonth(e.target.value)} className="col-span-3" />
               </div>
-              {['29', '30', '31'].includes(dayOfMonth) && (
+              {dayOfMonth === '31' && (
                 <div className="grid grid-cols-4 items-center gap-4">
                   <div/>
                   <div className="col-span-3 flex items-center space-x-2">
-                    <Checkbox id="last-day" checked={useLastDay} onCheckedChange={(checked) => setUseLastDay(Boolean(checked))} />
-                    <Label htmlFor="last-day" className="font-normal">Adjust for shorter months</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox id="last-day" checked={useLastDay} onCheckedChange={(checked) => setUseLastDay(Boolean(checked))} />
+                          <Label htmlFor="last-day" className="font-normal cursor-pointer">Adjust for shorter months</Label>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Ensures this task appears on the last day of every month.</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 </div>
               )}
