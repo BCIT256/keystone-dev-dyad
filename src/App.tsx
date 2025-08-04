@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AppNavigator from "./navigation/AppNavigator";
 import SettingsScreen from "./pages/SettingsScreen";
+import PurchaseScreen from "./pages/PurchaseScreen";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/settings" element={<SettingsScreen />} />
           </Route>
+          <Route path="/purchase" element={<PurchaseScreen />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

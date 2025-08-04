@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 
 export default function SettingsScreen() {
   return (
@@ -13,7 +14,9 @@ export default function SettingsScreen() {
           <CardDescription>Manage your account settings.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button variant="outline" className="w-full" disabled>Upgrade to Pro</Button>
+          <Button variant="outline" className="w-full" asChild>
+            <Link to="/purchase">Upgrade to Pro</Link>
+          </Button>
           <Button variant="destructive" className="w-full">Log Out</Button>
         </CardContent>
       </Card>

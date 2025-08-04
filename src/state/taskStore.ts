@@ -8,6 +8,7 @@ interface TaskState {
   completions: TaskCompletion[];
   isLoading: boolean;
   currentDate: Date;
+  adsVisible: boolean;
   getTasksForDate: (date: Date) => { task: Task; isComplete: boolean }[];
   addTask: (task: Omit<Task, 'id' | 'userId' | 'createdAt'>) => Promise<void>;
   toggleTaskCompletion: (taskId: string, date: Date) => void;
@@ -15,6 +16,7 @@ interface TaskState {
   nextDay: () => void;
   previousDay: () => void;
   setCurrentDate: (date: Date) => void;
+  hideAds: () => void;
 }
 
 const getWeekOfMonth = (date: Date): number => {
@@ -26,6 +28,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   completions: [],
   isLoading: true,
   currentDate: new Date(),
+  adsVisible: true,
 
   fetchTasks: async () => {
     set({ isLoading: true });
@@ -120,5 +123,9 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
   setCurrentDate: (date: Date) => {
     set({ currentDate: date });
+  },
+
+  hideAds: () => {
+    set({ adsVisible: false });
   },
 }));
