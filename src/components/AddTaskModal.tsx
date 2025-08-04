@@ -9,7 +9,7 @@ import { useTaskStore } from '@/state/taskStore';
 import { RecurrenceType, Task } from '@/types';
 import { Checkbox } from './ui/checkbox';
 import { showError } from '@/utils/toast';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from './ui/tooltip';
 
 interface AddTaskModalProps {
   isOpen: boolean;
@@ -92,7 +92,7 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
     const taskData: Omit<Task, 'id' | 'userId' | 'createdAt'> = {
       title,
       recurrence,
-      dueTime: recurrenceType === 'daily' ? (isAllDay ? 'all_day' : time) : undefined,
+      dueTime: isAllDay ? 'all_day' : time,
     };
 
     addTask(taskData);
@@ -102,26 +102,26 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle>Add New Task</DialogTitle>
           <DialogDescription>
             What do you want to accomplish?
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="title" className="text-right">
+        <div className="grid gap-6 py-4">
+          <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-x-4 gap-y-2">
+            <Label htmlFor="title" className="sm:text-right">
               Title
             </Label>
-            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="col-span-3" placeholder="e.g. Walk the dog" />
+            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="sm:col-span-3" placeholder="e.g. Walk the dog" />
           </div>
-          <div className="grid grid-cols-4 items-start gap-4 pt-2">
-            <Label className="text-right pt-2">Recurrence</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-4 items-start gap-x-4 gap-y-2 pt-2">
+            <Label className="sm:text-right pt-2">Recurrence</Label>
             <RadioGroup
               value={recurrenceType}
               onValueChange={(value: string) => setRecurrenceType(value as RecurrenceType)}
-              className="col-span-3 flex flex-col gap-3"
+              className="sm:col-span-3 flex flex-col gap-3"
             >
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="daily" id="r1" />
@@ -142,12 +142,12 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
             </RadioGroup>
           </div>
           {(recurrenceType === 'weekly' || recurrenceType === 'biweekly') && (
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="day" className="text-right">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-x-4 gap-y-2">
+              <Label htmlFor="day" className="sm:text-right">
                 Day
               </Label>
               <Select value={dayOfWeek} onValueChange={setDayOfWeek}>
-                <SelectTrigger className="col-span-3">
+                <SelectTrigger className="sm:col-span-3">
                   <SelectValue placeholder="Select a day" />
                 </SelectTrigger>
                 <SelectContent>
@@ -159,9 +159,9 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
             </div>
           )}
           {recurrenceType === 'biweekly' && (
-            <div className="grid grid-cols-4 items-start gap-4 pt-2">
-              <Label className="text-right pt-2">Weeks</Label>
-              <RadioGroup value={biweeklyWeeks} onValueChange={(v) => setBiweeklyWeeks(v as any)} className="col-span-3 flex flex-col gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-start gap-x-4 gap-y-2 pt-2">
+              <Label className="sm:text-right pt-2">Weeks</Label>
+              <RadioGroup value={biweeklyWeeks} onValueChange={(v) => setBiweeklyWeeks(v as any)} className="sm:col-span-3 flex flex-col gap-3">
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="first_third" id="bw1" />
                   <Label htmlFor="bw1">1st & 3rd week of month</Label>
@@ -175,48 +175,45 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
           )}
           {recurrenceType === 'monthly' && (
             <>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="dayOfMonth" className="text-right">Day of Month</Label>
-                <Input id="dayOfMonth" type="number" min="1" max="31" value={dayOfMonth} onChange={e => setDayOfMonth(e.target.value)} className="col-span-3" />
+              <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-x-4 gap-y-2">
+                <Label htmlFor="dayOfMonth" className="sm:text-right">Day of Month</Label>
+                <Input id="dayOfMonth" type="number" min="1" max="31" value={dayOfMonth} onChange={e => setDayOfMonth(e.target.value)} className="sm:col-span-3" />
               </div>
               {dayOfMonth === '31' && (
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <div/>
-                  <div className="col-span-3 flex items-center space-x-2">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox id="last-day" checked={useLastDay} onCheckedChange={(checked) => setUseLastDay(Boolean(checked))} />
-                          <Label htmlFor="last-day" className="font-normal cursor-pointer">Adjust for shorter months</Label>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Ensures this task appears on the last day of every month.</p>
-                      </TooltipContent>
-                    </Tooltip>
+                <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-x-4 gap-y-2">
+                  <div className="sm:col-start-2 sm:col-span-3 flex items-center space-x-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox id="last-day" checked={useLastDay} onCheckedChange={(checked) => setUseLastDay(Boolean(checked))} />
+                            <Label htmlFor="last-day" className="font-normal cursor-pointer">Adjust for shorter months</Label>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Ensures this task appears on the last day of every month.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
                 </div>
               )}
             </>
           )}
-          {recurrenceType === 'daily' && (
-            <>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Time</Label>
-                <div className="col-span-3 flex items-center space-x-2">
-                  <Checkbox id="all-day" checked={isAllDay} onCheckedChange={(checked) => setIsAllDay(Boolean(checked))} />
-                  <Label htmlFor="all-day">All day</Label>
-                </div>
-              </div>
-              {!isAllDay && (
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="due-time" className="text-right">
-                    Due at
-                  </Label>
-                  <Input id="due-time" type="time" value={time} onChange={e => setTime(e.target.value)} className="col-span-3" />
-                </div>
-              )}
-            </>
+          <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-x-4 gap-y-2">
+            <Label className="sm:text-right">Time</Label>
+            <div className="sm:col-span-3 flex items-center space-x-2">
+              <Checkbox id="all-day" checked={isAllDay} onCheckedChange={(checked) => setIsAllDay(Boolean(checked))} />
+              <Label htmlFor="all-day">All day</Label>
+            </div>
+          </div>
+          {!isAllDay && (
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-x-4 gap-y-2">
+              <Label htmlFor="due-time" className="sm:text-right">
+                Due at
+              </Label>
+              <Input id="due-time" type="time" value={time} onChange={e => setTime(e.target.value)} className="sm:col-span-3" />
+            </div>
           )}
         </div>
         <DialogFooter>

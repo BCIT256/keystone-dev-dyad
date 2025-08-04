@@ -25,23 +25,23 @@ export function DevDateControls() {
       <CardHeader>
         <CardTitle className="text-lg">Dev Controls</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="flex items-end gap-4">
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap gap-2">
           <Button onClick={previousDay}>Previous Day</Button>
           <Button onClick={nextDay}>Next Day</Button>
         </div>
-        <div className="flex items-end gap-2 mt-4">
+        <div className="flex flex-wrap items-end gap-2">
           <div>
             <Label htmlFor="year">Year</Label>
-            <Input id="year" placeholder="YYYY" value={year} onChange={e => setYear(e.target.value)} />
+            <Input id="year" placeholder="YYYY" value={year} onChange={e => setYear(e.target.value)} className="w-24" />
           </div>
           <div>
             <Label htmlFor="month">Month</Label>
-            <Input id="month" placeholder="MM" value={month} onChange={e => setMonth(e.target.value)} />
+            <Input id="month" placeholder="MM" value={month} onChange={e => setMonth(e.target.value)} className="w-20" />
           </div>
           <div>
             <Label htmlFor="day">Day</Label>
-            <Input id="day" placeholder="DD" value={day} onChange={e => setDay(e.target.value)} />
+            <Input id="day" placeholder="DD" value={day} onChange={e => setDay(e.target.value)} className="w-20" />
           </div>
           <Button onClick={handleGoToDate}>Go</Button>
         </div>

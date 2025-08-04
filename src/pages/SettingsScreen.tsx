@@ -6,7 +6,7 @@ export default function SettingsScreen() {
   return (
     <div className="container mx-auto p-4 md:p-8">
       <header className="mb-8">
-        <h1 className="text-4xl font-bold tracking-tight">Settings</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Settings</h1>
       </header>
       <Card className="max-w-md">
         <CardHeader>

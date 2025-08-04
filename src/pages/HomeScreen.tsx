@@ -32,8 +32,8 @@ export default function HomeScreen() {
   return (
     <div className={cn("container mx-auto p-4 md:p-8", adsVisible ? "pb-32" : "pb-24")}>
       <header className="mb-8">
-        <h1 className="text-4xl font-bold tracking-tight">{getGreeting()}, User</h1>
-        <p className="text-muted-foreground text-lg">{format(currentDate, 'EEEE, MMMM d, yyyy')}</p>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">{getGreeting()}, User</h1>
+        <p className="text-muted-foreground text-base sm:text-lg">{format(currentDate, 'EEEE, MMMM d, yyyy')}</p>
       </header>
 
       <main>

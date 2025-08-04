@@ -18,7 +18,7 @@ export default function PurchaseScreen() {
   return (
     <div className="container mx-auto p-4 md:p-8">
       <header className="mb-8 text-center">
-        <h1 className="text-4xl font-bold tracking-tight">Upgrade Your Experience</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Upgrade Your Experience</h1>
         <p className="text-muted-foreground mt-2">Choose a plan that works for you.</p>
       </header>
       <div className="max-w-md mx-auto space-y-6">
