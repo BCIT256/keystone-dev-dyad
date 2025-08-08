@@ -64,7 +64,7 @@ export default function HomeScreen() {
         <p className="text-lg text-muted-foreground mt-2">{format(currentDate, 'EEEE, MMMM d, yyyy')}</p>
       </header>
 
-      <motion.div {...bind()} animate={controls} className="cursor-grab active:cursor-grabbing" style={{ touchAction: 'pan-y' }}>
+      <motion.div {...bind() as any} animate={controls} className="cursor-grab active:cursor-grabbing" style={{ touchAction: 'pan-y' }}>
         <div className="my-8 flex justify-center">
           <img src="/placeholder.svg" alt="Artwork" className="w-full max-w-md h-56 object-cover rounded-xl bg-muted" />
         </div>
