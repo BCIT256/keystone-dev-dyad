@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DevDateControls } from '@/components/DevDateControls';
 import { Separator } from '@/components/ui/separator';
-import { useDrag } from '@use-gesture/react';
+import { useDrag, Handler } from '@use-gesture/react';
 import { motion, useAnimation } from 'framer-motion';
 
 const getGreeting = () => {
@@ -28,7 +28,7 @@ export default function HomeScreen() {
     fetchTasks();
   }, [fetchTasks]);
 
-  const bind = useDrag(({ active, down, movement: [mx], direction: [xDir] }) => {
+  const dragHandler: Handler<'drag'> = ({ active, down, movement: [mx], direction: [xDir] }) => {
     const dragDistance = Math.abs(mx);
     const dragThreshold = (containerRef.current?.clientWidth ?? 300) / 4;
 
@@ -38,17 +38,17 @@ export default function HomeScreen() {
       } else {
         nextDay();
       }
-      // After changing day, reset the position for the new content.
       controls.start({ x: 0, opacity: 1, transition: { duration: 0.3 } });
     } else {
-      // While dragging, or snapping back if threshold not met
       controls.start({
         x: down ? mx : 0,
         opacity: down ? 1 - dragDistance / 300 : 1,
-        transition: { duration: down ? 0 : 0.3 }
+        transition: { duration: 0 }
       });
     }
-  }, {
+  };
+
+  const bind = useDrag(dragHandler, {
     axis: 'x',
     threshold: 10,
   });
@@ -64,7 +64,7 @@ export default function HomeScreen() {
         <p className="text-lg text-muted-foreground mt-2">{format(currentDate, 'EEEE, MMMM d, yyyy')}</p>
       </header>
 
-      <motion.div {...bind()} animate={controls} className="cursor-grab active:cursor-grabbing">
+      <motion.div {...bind()} animate={controls} className="cursor-grab active:cursor-grabbing" style={{ touchAction: 'pan-y' }}>
         <div className="my-8 flex justify-center">
           <img src="/placeholder.svg" alt="Artwork" className="w-full max-w-md h-56 object-cover rounded-xl bg-muted" />
         </div>
