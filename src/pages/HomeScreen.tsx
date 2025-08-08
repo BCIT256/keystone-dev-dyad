@@ -28,16 +28,17 @@ export default function HomeScreen() {
     fetchTasks();
   }, [fetchTasks]);
 
-  const bind = useDrag({
-    onDrag: ({ movement: [mx], active }) => {
-      const dragDistance = Math.abs(mx);
+  const bind = useDrag(({ active, movement: [mx], direction: [xDir] }) => {
+    const dragDistance = Math.abs(mx);
+
+    if (active) {
+      // While dragging, update position and opacity
       controls.start({ 
-        x: active ? mx : 0, 
-        opacity: active ? 1 - dragDistance / 300 : 1 
-      });
-    },
-    onDragEnd: ({ movement: [mx], direction: [xDir] }) => {
-      const dragDistance = Math.abs(mx);
+        x: mx, 
+        opacity: 1 - dragDistance / 300 
+      }, { immediate: true });
+    } else {
+      // On drag end, check if we should switch day
       if (dragDistance > (containerRef.current?.clientWidth ?? 300) / 4) {
         if (xDir > 0) {
           previousDay();
@@ -45,6 +46,7 @@ export default function HomeScreen() {
           nextDay();
         }
       }
+      // Animate back to center
       controls.start({ x: 0, opacity: 1 });
     }
   });
