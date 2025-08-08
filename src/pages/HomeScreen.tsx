@@ -10,6 +10,9 @@ import { DevDateControls } from '@/components/DevDateControls';
 import { Separator } from '@/components/ui/separator';
 import { useDrag, Handler } from '@use-gesture/react';
 import { motion, useAnimation } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { HelpCircle } from 'lucide-react';
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -19,7 +22,7 @@ const getGreeting = () => {
 };
 
 export default function HomeScreen() {
-  const { fetchTasks, getTasksForDate, isLoading, currentDate, adsVisible, nextDay, previousDay } = useTaskStore();
+  const { fetchTasks, getTasksForDate, isLoading, currentDate, adsVisible, nextDay, previousDay, completeAllTasks } = useTaskStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -53,6 +56,10 @@ export default function HomeScreen() {
     threshold: 10,
   });
 
+  const handleCompleteAll = () => {
+    completeAllTasks(currentDate);
+  };
+
   const tasksForDate = getTasksForDate(currentDate);
   const dailyTasks = tasksForDate.filter(t => t.task.recurrence.type === 'daily');
   const scheduledTasks = tasksForDate.filter(t => t.task.recurrence.type !== 'daily');
@@ -72,9 +79,24 @@ export default function HomeScreen() {
         <main className="flex flex-col flex-grow">
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-xl">Today's Agenda</CardTitle>
-                <p className="text-sm text-muted-foreground">🔥 5-day streak!</p>
+              <div className="flex justify-between items-center gap-4">
+                <div>
+                  <CardTitle className="text-xl">Today's Agenda</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">🔥 5-day streak!</p>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                    <Button variant="outline" size="sm" onClick={handleCompleteAll}>I'm finished</Button>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Checks off all your tasks for the day.</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="p-0">

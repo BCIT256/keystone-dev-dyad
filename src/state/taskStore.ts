@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { Task, TaskCompletion } from '../types';
 import { TaskRepository } from '../api/taskRepository';
 import { format, getDay, getDate, addDays, subDays, endOfMonth } from 'date-fns';
+import { showSuccess } from '@/utils/toast';
 
 interface TaskState {
   tasks: Task[];
@@ -17,6 +18,7 @@ interface TaskState {
   previousDay: () => void;
   setCurrentDate: (date: Date) => void;
   hideAds: () => void;
+  completeAllTasks: (date: Date) => Promise<void>;
 }
 
 const getWeekOfMonth = (date: Date): number => {
@@ -131,6 +133,30 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         completions: [...state.completions, newCompletion],
       }));
     }
+  },
+
+  completeAllTasks: async (date: Date) => {
+    const { getTasksForDate } = get();
+    const dateString = format(date, 'yyyy-MM-dd');
+    const tasksForDate = getTasksForDate(date);
+    
+    const incompleteTasks = tasksForDate.filter(t => !t.isComplete);
+
+    if (incompleteTasks.length === 0) {
+      showSuccess("Everything is already done!");
+      return;
+    }
+
+    const newCompletionsPromises = incompleteTasks.map(({ task }) => 
+      TaskRepository.addCompletion(task.id, dateString)
+    );
+    
+    const newCompletions = await Promise.all(newCompletionsPromises);
+
+    set(state => ({
+      completions: [...state.completions, ...newCompletions],
+    }));
+    showSuccess(`Great job! You've completed ${newCompletions.length} task(s).`);
   },
 
   nextDay: () => {
