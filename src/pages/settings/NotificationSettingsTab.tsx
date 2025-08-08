@@ -39,7 +39,7 @@ export function NotificationSettingsTab() {
         <CardTitle>Notifications</CardTitle>
         <CardDescription>
           Manage how you receive notifications for your tasks.
-        </Description>
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {notificationPermission === 'denied' && (

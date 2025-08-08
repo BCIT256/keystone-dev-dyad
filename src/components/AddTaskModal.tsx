@@ -78,13 +78,6 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
       recurrenceType: 'daily',
       isAllDay: true,
       time: '09:00',
-      dayOfWeek: '1',
-      biweeklyWeeks: 'first_third',
-      monthlyType: 'dayOfMonth',
-      dayOfMonth: 1,
-      monthlyWeek: 'first',
-      monthlyDayOfWeek: '1',
-      monthlyPosition: 'first',
     },
   });
 

@@ -28,8 +28,9 @@ export default function HomeScreen() {
     fetchTasks();
   }, [fetchTasks]);
 
-  const bind = useDrag(({ down, movement: [mx], direction: [xDir], distance, cancel }) => {
-    if (distance > (containerRef.current?.clientWidth ?? 300) / 4) {
+  const bind = useDrag(({ down, movement: [mx], direction: [xDir], cancel }) => {
+    const dragDistance = Math.abs(mx);
+    if (dragDistance > (containerRef.current?.clientWidth ?? 300) / 4) {
       cancel();
       if (xDir > 0) {
         previousDay();
@@ -38,7 +39,7 @@ export default function HomeScreen() {
       }
       controls.start({ x: 0, opacity: 1 });
     } else {
-      controls.start({ x: down ? mx : 0, opacity: down ? 1 - distance / 300 : 1 });
+      controls.start({ x: down ? mx : 0, opacity: down ? 1 - dragDistance / 300 : 1 });
     }
   });
 
