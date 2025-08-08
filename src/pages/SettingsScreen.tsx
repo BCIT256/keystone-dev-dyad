@@ -1,7 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AccountSettingsTab } from "./settings/AccountSettingsTab";
-import { NotificationSettingsTab } from "./settings/NotificationSettingsTab";
-import { AppearanceSettingsTab } from "./settings/AppearanceSettingsTab";
+import { AccountSettingsTab } from "@/pages/settings/AccountSettingsTab";
+import { NotificationSettingsTab } from "@/pages/settings/NotificationSettingsTab";
+import { AppearanceSettingsTab } from "@/pages/settings/AppearanceSettingsTab";
 
 export default function SettingsScreen() {
   return (
