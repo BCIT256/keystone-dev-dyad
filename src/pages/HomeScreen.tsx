@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DevDateControls } from '@/components/DevDateControls';
 import { Separator } from '@/components/ui/separator';
-import { useDrag } from '@use-gesture/react';
+import { useDrag, Handler } from '@use-gesture/react';
 import { motion, useAnimation } from 'framer-motion';
 
 const getGreeting = () => {
@@ -28,7 +28,7 @@ export default function HomeScreen() {
     fetchTasks();
   }, [fetchTasks]);
 
-  const bind = useDrag(({ active, movement: [mx], direction: [xDir] }) => {
+  const dragHandler: Handler<'drag'> = ({ active, movement: [mx], direction: [xDir] }) => {
     const dragDistance = Math.abs(mx);
 
     if (active) {
@@ -36,7 +36,7 @@ export default function HomeScreen() {
       controls.start({ 
         x: mx, 
         opacity: 1 - dragDistance / 300 
-      }, { immediate: true });
+      }, { duration: 0 });
     } else {
       // On drag end, check if we should switch day
       if (dragDistance > (containerRef.current?.clientWidth ?? 300) / 4) {
@@ -49,7 +49,9 @@ export default function HomeScreen() {
       // Animate back to center
       controls.start({ x: 0, opacity: 1 });
     }
-  });
+  };
+
+  const bind = useDrag(dragHandler);
 
   const tasksForDate = getTasksForDate(currentDate);
   const dailyTasks = tasksForDate.filter(t => t.task.recurrence.type === 'daily');
