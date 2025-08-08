@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { LogoutConfirmationDialog } from "@/components/LogoutConfirmationDialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AccountSettingsTab } from "./settings/AccountSettingsTab";
+import { NotificationSettingsTab } from "./settings/NotificationSettingsTab";
+import { AppearanceSettingsTab } from "./settings/AppearanceSettingsTab";
 
 export default function SettingsScreen() {
   return (
@@ -9,18 +9,22 @@ export default function SettingsScreen() {
       <header className="mb-8">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Settings</h1>
       </header>
-      <Card className="max-w-md">
-        <CardHeader>
-          <CardTitle>Account</CardTitle>
-          <CardDescription>Manage your account settings.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Button variant="outline" className="w-full" asChild>
-            <Link to="/purchase">Upgrade to Pro</Link>
-          </Button>
-          <LogoutConfirmationDialog />
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="account" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 max-w-md">
+          <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
+        </TabsList>
+        <TabsContent value="account" className="mt-6">
+          <AccountSettingsTab />
+        </TabsContent>
+        <TabsContent value="notifications" className="mt-6">
+          <NotificationSettingsTab />
+        </TabsContent>
+        <TabsContent value="appearance" className="mt-6">
+          <AppearanceSettingsTab />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

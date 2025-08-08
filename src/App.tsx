@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppNavigator from "./navigation/AppNavigator";
 import { PageLoader } from "./components/PageLoader";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { ThemeProvider } from "./components/ThemeProvider";
 
 const queryClient = new QueryClient();
 
@@ -18,22 +19,24 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route element={<AppNavigator />}>
-                <Route path="/" element={<Index />} />
-                <Route path="/settings" element={<SettingsScreen />} />
-              </Route>
-              <Route path="/purchase" element={<PurchaseScreen />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </TooltipProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route element={<AppNavigator />}>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/settings" element={<SettingsScreen />} />
+                </Route>
+                <Route path="/purchase" element={<PurchaseScreen />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   </ErrorBoundary>
 );
