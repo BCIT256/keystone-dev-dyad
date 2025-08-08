@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DevDateControls } from '@/components/DevDateControls';
 import { Separator } from '@/components/ui/separator';
-import { useDrag, FullGestureState } from '@use-gesture/react';
+import { useDrag } from '@use-gesture/react';
 import { motion, useAnimation } from 'framer-motion';
 
 const getGreeting = () => {
@@ -28,18 +28,24 @@ export default function HomeScreen() {
     fetchTasks();
   }, [fetchTasks]);
 
-  const bind = useDrag(({ down, movement: [mx], direction: [xDir], cancel }: FullGestureState<'drag'>) => {
-    const dragDistance = Math.abs(mx);
-    if (dragDistance > (containerRef.current?.clientWidth ?? 300) / 4) {
-      if (cancel) cancel();
-      if (xDir > 0) {
-        previousDay();
-      } else {
-        nextDay();
+  const bind = useDrag({
+    onDrag: ({ movement: [mx], active }) => {
+      const dragDistance = Math.abs(mx);
+      controls.start({ 
+        x: active ? mx : 0, 
+        opacity: active ? 1 - dragDistance / 300 : 1 
+      });
+    },
+    onDragEnd: ({ movement: [mx], direction: [xDir] }) => {
+      const dragDistance = Math.abs(mx);
+      if (dragDistance > (containerRef.current?.clientWidth ?? 300) / 4) {
+        if (xDir > 0) {
+          previousDay();
+        } else {
+          nextDay();
+        }
       }
       controls.start({ x: 0, opacity: 1 });
-    } else {
-      controls.start({ x: down ? mx : 0, opacity: down ? 1 - dragDistance / 300 : 1 });
     }
   });
 
