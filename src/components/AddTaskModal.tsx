@@ -6,14 +6,12 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTaskStore } from '@/state/taskStore';
-import { RecurrenceType, Task } from '@/types';
+import { Recurrence, Task } from '@/types';
 import { Checkbox } from './ui/checkbox';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from './ui/tooltip';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
-import { HelpCircle } from 'lucide-react';
 import { getRandomTaskExample } from '@/lib/taskExamples';
 
 const weekDays = [
@@ -22,24 +20,42 @@ const weekDays = [
   { value: '6', label: 'Saturday' },
 ];
 
+const weekOfMonthOptions = [
+  { value: 'first', label: 'First' }, { value: 'second', label: 'Second' }, { value: 'third', label: 'Third' },
+  { value: 'fourth', label: 'Fourth' }, { value: 'last', label: 'Last' },
+];
+
 const formSchema = z.object({
   title: z.string().min(1, "Title is required."),
   recurrenceType: z.enum(['daily', 'weekly', 'biweekly', 'monthly']),
-  dayOfWeek: z.string().optional(),
-  biweeklyWeeks: z.enum(['first_third', 'second_fourth']).optional(),
-  dayOfMonth: z.coerce.number().min(1).max(31).optional(),
-  useLastDay: z.boolean().optional(),
   isAllDay: z.boolean(),
   time: z.string().optional(),
-}).refine(data => data.recurrenceType !== 'weekly' || !!data.dayOfWeek, {
-  message: "Day of the week is required.", path: ["dayOfWeek"],
-}).refine(data => data.recurrenceType !== 'biweekly' || !!data.dayOfWeek, {
-  message: "Day of the week is required.", path: ["dayOfWeek"],
-}).refine(data => data.recurrenceType !== 'biweekly' || !!data.biweeklyWeeks, {
-  message: "Bi-weekly schedule is required.", path: ["biweeklyWeeks"],
-}).refine(data => data.recurrenceType !== 'monthly' || !!data.dayOfMonth, {
-  message: "Day of the month is required.", path: ["dayOfMonth"],
-});
+}).and(z.union([
+  z.object({ recurrenceType: z.literal('daily') }),
+  z.object({
+    recurrenceType: z.literal('weekly'),
+    dayOfWeek: z.string().min(1, "Day of the week is required."),
+  }),
+  z.object({
+    recurrenceType: z.literal('biweekly'),
+    dayOfWeek: z.string().min(1, "Day of the week is required."),
+    biweeklyWeeks: z.enum(['first_third', 'second_fourth'], { required_error: "Bi-weekly schedule is required." }),
+  }),
+  z.object({
+    recurrenceType: z.literal('monthly'),
+    monthlyType: z.enum(['dayOfMonth', 'dayOfWeek']),
+  }).and(z.union([
+    z.object({
+      monthlyType: z.literal('dayOfMonth'),
+      dayOfMonth: z.coerce.number().min(1, "Day must be between 1 and 31.").max(31, "Day must be between 1 and 31."),
+    }),
+    z.object({
+      monthlyType: z.literal('dayOfWeek'),
+      monthlyWeek: z.enum(['first', 'second', 'third', 'fourth', 'last']),
+      monthlyDayOfWeek: z.string().min(1, "Day of the week is required."),
+    }),
+  ])),
+]));
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -56,40 +72,62 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
     defaultValues: {
       title: '',
       recurrenceType: 'daily',
-      dayOfWeek: '1',
-      biweeklyWeeks: 'first_third',
-      dayOfMonth: 1,
-      useLastDay: false,
       isAllDay: true,
       time: '09:00',
+      dayOfWeek: '1',
+      biweeklyWeeks: 'first_third',
+      monthlyType: 'dayOfMonth',
+      dayOfMonth: 1,
+      monthlyWeek: 'first',
+      monthlyDayOfWeek: '1',
     },
   });
 
   const recurrenceType = form.watch('recurrenceType');
-  const dayOfMonth = form.watch('dayOfMonth');
+  const monthlyType = form.watch('monthlyType');
 
   useEffect(() => {
     if (isOpen) {
-      form.reset();
+      form.reset({
+        title: '',
+        recurrenceType: 'daily',
+        isAllDay: true,
+        time: '09:00',
+        dayOfWeek: '1',
+        biweeklyWeeks: 'first_third',
+        monthlyType: 'dayOfMonth',
+        dayOfMonth: 1,
+        monthlyWeek: 'first',
+        monthlyDayOfWeek: '1',
+      });
       setPlaceholder(getRandomTaskExample());
     }
   }, [isOpen, form]);
 
   const handleSave = (values: FormValues) => {
-    let recurrence: Task['recurrence'];
+    let recurrence: Recurrence;
 
     switch (values.recurrenceType) {
       case 'daily':
         recurrence = { type: 'daily' };
         break;
       case 'weekly':
-        recurrence = { type: 'weekly', dayOfWeek: parseInt(values.dayOfWeek!, 10) };
+        recurrence = { type: 'weekly', dayOfWeek: parseInt(values.dayOfWeek, 10) };
         break;
       case 'biweekly':
-        recurrence = { type: 'biweekly', dayOfWeek: parseInt(values.dayOfWeek!, 10), biweeklyWeeks: values.biweeklyWeeks };
+        recurrence = { type: 'biweekly', dayOfWeek: parseInt(values.dayOfWeek, 10), biweeklyWeeks: values.biweeklyWeeks };
         break;
       case 'monthly':
-        recurrence = { type: 'monthly', dayOfMonth: values.dayOfMonth, isLastDayOfMonth: values.dayOfMonth === 31 && values.useLastDay };
+        if (values.monthlyType === 'dayOfMonth') {
+          recurrence = { type: 'monthly', monthlyType: 'dayOfMonth', day: values.dayOfMonth };
+        } else {
+          recurrence = {
+            type: 'monthly',
+            monthlyType: 'dayOfWeek',
+            week: values.monthlyWeek,
+            dayOfWeek: parseInt(values.monthlyDayOfWeek, 10),
+          };
+        }
         break;
     }
 
@@ -125,7 +163,7 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                 <FormLabel>Recurrence</FormLabel>
                 <FormControl>
                   <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-wrap gap-4 pt-2">
-                    {(['daily', 'weekly', 'biweekly', 'monthly'] as RecurrenceType[]).map(type => (
+                    {(['daily', 'weekly', 'biweekly', 'monthly'] as const).map(type => (
                       <FormItem key={type} className="flex items-center space-x-2">
                         <FormControl><RadioGroupItem value={type} id={`r-${type}`} /></FormControl>
                         <Label htmlFor={`r-${type}`} className="capitalize font-normal">{type}</Label>
@@ -166,38 +204,62 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
             )}
 
             {recurrenceType === 'monthly' && (
-              <>
-                <FormField control={form.control} name="dayOfMonth" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Day of Month</FormLabel>
-                    <FormControl><Input type="number" min="1" max="31" {...field} /></FormControl>
-                    <FormMessage />
+              <div className="space-y-4 rounded-md border p-4">
+                <FormField control={form.control} name="monthlyType" render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Monthly Schedule</FormLabel>
+                    <FormControl>
+                      <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-2">
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl><RadioGroupItem value="dayOfMonth" /></FormControl>
+                          <FormLabel className="font-normal">On a specific day</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl><RadioGroupItem value="dayOfWeek" /></FormControl>
+                          <FormLabel className="font-normal">On a relative day</FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
                   </FormItem>
                 )} />
-                {Number(dayOfMonth) === 31 && (
-                  <FormField control={form.control} name="useLastDay" render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                      <div className="space-y-1 leading-none">
-                        <div className="flex items-center gap-1.5">
-                          <FormLabel>End of Month</FormLabel>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger type="button" onClick={(e) => e.preventDefault()}>
-                                <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Adjusts for shorter months (e.g., 30 days).</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <p className="text-sm text-muted-foreground">Ensures this task appears on the last day of every month.</p>
-                      </div>
+
+                {monthlyType === 'dayOfMonth' && (
+                  <FormField control={form.control} name="dayOfMonth" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Day of Month</FormLabel>
+                      <FormControl><Input type="number" min="1" max="31" placeholder="e.g., 15" {...field} value={field.value ?? ''} /></FormControl>
+                      <FormMessage />
                     </FormItem>
                   )} />
                 )}
-              </>
+
+                {monthlyType === 'dayOfWeek' && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="monthlyWeek" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Week</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                          <SelectContent>
+                            {weekOfMonthOptions.map(opt => <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="monthlyDayOfWeek" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Day</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                          <SelectContent>
+                            {weekDays.map(day => <SelectItem key={day.value} value={day.value}>{day.label}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )} />
+                  </div>
+                )}
+              </div>
             )}
 
             <FormField control={form.control} name="isAllDay" render={({ field }) => (
@@ -211,7 +273,7 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
               <FormField control={form.control} name="time" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Due at</FormLabel>
-                  <FormControl><Input type="time" {...field} /></FormControl>
+                  <FormControl><Input type="time" {...field} value={field.value ?? ''} /></FormControl>
                 </FormItem>
               )} />
             )}

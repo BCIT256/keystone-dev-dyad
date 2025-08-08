@@ -39,8 +39,16 @@ const mockTasks: Task[] = [
     id: '5',
     userId: 'user-1',
     title: 'Pay rent',
-    recurrence: { type: 'monthly', dayOfMonth: 31, isLastDayOfMonth: true }, // 31st or last day of month
+    recurrence: { type: 'monthly', monthlyType: 'dayOfMonth', day: 1 }, // 1st of the month
     dueTime: 'all_day',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: '6',
+    userId: 'user-1',
+    title: 'Book club meeting',
+    recurrence: { type: 'monthly', monthlyType: 'dayOfWeek', week: 'last', dayOfWeek: 4 }, // Last Thursday
+    dueTime: '18:30',
     createdAt: new Date().toISOString(),
   },
 ];

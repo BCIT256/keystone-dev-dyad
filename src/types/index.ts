@@ -1,16 +1,25 @@
-export type RecurrenceType = 'daily' | 'weekly' | 'biweekly' | 'monthly';
+export type MonthlyRecurrence =
+  | {
+      monthlyType: 'dayOfMonth';
+      day: number; // 1-31
+    }
+  | {
+      monthlyType: 'dayOfWeek';
+      week: 'first' | 'second' | 'third' | 'fourth' | 'last';
+      dayOfWeek: number; // 0-6, Sunday-Saturday
+    };
+
+export type Recurrence =
+  | { type: 'daily' }
+  | { type: 'weekly'; dayOfWeek: number }
+  | { type: 'biweekly'; dayOfWeek: number; biweeklyWeeks: 'first_third' | 'second_fourth' }
+  | ({ type: 'monthly' } & MonthlyRecurrence);
 
 export interface Task {
   id: string;
   userId: string; // Mocked
   title: string;
-  recurrence: {
-    type: RecurrenceType;
-    dayOfWeek?: number; // 0=Sunday, 1=Monday, etc. Only for weekly/biweekly
-    biweeklyWeeks?: 'first_third' | 'second_fourth'; // For biweekly on 1st/3rd or 2nd/4th weeks
-    dayOfMonth?: number; // For monthly
-    isLastDayOfMonth?: boolean; // For monthly tasks on days 29, 30, 31
-  };
+  recurrence: Recurrence;
   dueTime?: string; // 'HH:MM' format or 'all_day'
   createdAt: string; // ISO 8601 timestamp
 }

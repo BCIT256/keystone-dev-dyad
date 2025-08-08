@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Task, TaskCompletion } from '../types';
 import { TaskRepository } from '../api/taskRepository';
-import { format, getDay, getDate, addDays, subDays, isLastDayOfMonth, endOfMonth } from 'date-fns';
+import { format, getDay, getDate, addDays, subDays, endOfMonth } from 'date-fns';
 
 interface TaskState {
   tasks: Task[];
@@ -21,6 +21,21 @@ interface TaskState {
 
 const getWeekOfMonth = (date: Date): number => {
   return Math.ceil(getDate(date) / 7);
+};
+
+const isCorrectWeekOfMonth = (date: Date, week: 'first' | 'second' | 'third' | 'fourth' | 'last', dayOfWeek: number): boolean => {
+  if (getDay(date) !== dayOfWeek) return false;
+
+  const dayOfMonth = getDate(date);
+
+  switch (week) {
+    case 'first': return dayOfMonth >= 1 && dayOfMonth <= 7;
+    case 'second': return dayOfMonth >= 8 && dayOfMonth <= 14;
+    case 'third': return dayOfMonth >= 15 && dayOfMonth <= 21;
+    case 'fourth': return dayOfMonth >= 22 && dayOfMonth <= 28;
+    case 'last': return getDate(endOfMonth(date)) - dayOfMonth < 7;
+    default: return false;
+  }
 };
 
 export const useTaskStore = create<TaskState>((set, get) => ({
@@ -63,20 +78,18 @@ export const useTaskStore = create<TaskState>((set, get) => ({
           return false;
         }
         case 'monthly': {
-          const taskDay = t.recurrence.dayOfMonth;
-          if (!taskDay) return false;
-
-          // Standard check for the exact day
-          if (taskDay === dayOfMonth) return true;
-
-          // Fallback check for "last day of month" option
-          if (t.recurrence.isLastDayOfMonth) {
-            const lastDayOfCurrentMonth = endOfMonth(date).getDate();
-            if (taskDay > lastDayOfCurrentMonth && isLastDayOfMonth(date)) {
-              return true;
+          const { recurrence } = t;
+          if (recurrence.monthlyType === 'dayOfMonth') {
+            const lastDay = getDate(endOfMonth(date));
+            // If task is for day 31 but month has 28, show on 28th
+            if (recurrence.day > lastDay) {
+              return dayOfMonth === lastDay;
             }
+            return recurrence.day === dayOfMonth;
           }
-          
+          if (recurrence.monthlyType === 'dayOfWeek') {
+            return isCorrectWeekOfMonth(date, recurrence.week, recurrence.dayOfWeek);
+          }
           return false;
         }
         default:
