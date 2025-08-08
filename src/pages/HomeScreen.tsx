@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DevDateControls } from '@/components/DevDateControls';
 import { Separator } from '@/components/ui/separator';
-import { useDrag, Handler } from '@use-gesture/react';
+import { useDrag } from '@use-gesture/react';
 import { motion, useAnimation } from 'framer-motion';
 
 const getGreeting = () => {
@@ -28,30 +28,30 @@ export default function HomeScreen() {
     fetchTasks();
   }, [fetchTasks]);
 
-  const dragHandler: Handler<'drag'> = ({ active, movement: [mx], direction: [xDir] }) => {
+  const bind = useDrag(({ active, down, movement: [mx], direction: [xDir] }) => {
     const dragDistance = Math.abs(mx);
+    const dragThreshold = (containerRef.current?.clientWidth ?? 300) / 4;
 
-    if (active) {
-      // While dragging, update position and opacity
-      controls.start({ 
-        x: mx, 
-        opacity: 1 - dragDistance / 300 
-      }, { duration: 0 });
-    } else {
-      // On drag end, check if we should switch day
-      if (dragDistance > (containerRef.current?.clientWidth ?? 300) / 4) {
-        if (xDir > 0) {
-          previousDay();
-        } else {
-          nextDay();
-        }
+    if (!active && dragDistance > dragThreshold) {
+      if (xDir > 0) {
+        previousDay();
+      } else {
+        nextDay();
       }
-      // Animate back to center
-      controls.start({ x: 0, opacity: 1 });
+      // After changing day, reset the position for the new content.
+      controls.start({ x: 0, opacity: 1, transition: { duration: 0.3 } });
+    } else {
+      // While dragging, or snapping back if threshold not met
+      controls.start({
+        x: down ? mx : 0,
+        opacity: down ? 1 - dragDistance / 300 : 1,
+        transition: { duration: down ? 0 : 0.3 }
+      });
     }
-  };
-
-  const bind = useDrag(dragHandler);
+  }, {
+    axis: 'x',
+    threshold: 10,
+  });
 
   const tasksForDate = getTasksForDate(currentDate);
   const dailyTasks = tasksForDate.filter(t => t.task.recurrence.type === 'daily');
