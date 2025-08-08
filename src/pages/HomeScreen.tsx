@@ -37,10 +37,9 @@ export default function HomeScreen() {
       } else {
         nextDay();
       }
-      controls.start({ x: 0, opacity: 1 });
-    } else {
-      controls.start({ x: down ? mx : 0, opacity: down ? 1 - dragDistance / 300 : 1 });
+      return controls.start({ x: 0, opacity: 1 });
     }
+    return controls.start({ x: down ? mx : 0, opacity: down ? 1 - dragDistance / 300 : 1 });
   });
 
   const tasksForDate = getTasksForDate(currentDate);

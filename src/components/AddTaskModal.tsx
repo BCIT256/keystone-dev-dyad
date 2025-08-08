@@ -30,36 +30,40 @@ const formSchema = z.object({
   recurrenceType: z.enum(['daily', 'weekly', 'biweekly', 'monthly']),
   isAllDay: z.boolean(),
   time: z.string().optional(),
-}).and(z.union([
-  z.object({ recurrenceType: z.literal('daily') }),
-  z.object({
-    recurrenceType: z.literal('weekly'),
-    dayOfWeek: z.string().min(1, "Day of the week is required."),
-  }),
-  z.object({
-    recurrenceType: z.literal('biweekly'),
-    dayOfWeek: z.string().min(1, "Day of the week is required."),
-    biweeklyWeeks: z.enum(['first_third', 'second_fourth'], { required_error: "Bi-weekly schedule is required." }),
-  }),
-  z.object({
-    recurrenceType: z.literal('monthly'),
-    monthlyType: z.enum(['dayOfMonth', 'dayOfWeek', 'firstLastDay']),
-  }).and(z.union([
-    z.object({
-      monthlyType: z.literal('dayOfMonth'),
-      dayOfMonth: z.coerce.number().min(1, "Day must be between 1 and 31.").max(31, "Day must be between 1 and 31."),
-    }),
-    z.object({
-      monthlyType: z.literal('dayOfWeek'),
-      monthlyWeek: z.enum(['first', 'second', 'third', 'fourth', 'last']),
-      monthlyDayOfWeek: z.string().min(1, "Day of the week is required."),
-    }),
-    z.object({
-      monthlyType: z.literal('firstLastDay'),
-      monthlyPosition: z.enum(['first', 'last']),
-    }),
-  ])),
-]));
+  dayOfWeek: z.string().optional(),
+  biweeklyWeeks: z.enum(['first_third', 'second_fourth']).optional(),
+  monthlyType: z.enum(['dayOfMonth', 'dayOfWeek', 'firstLastDay']).optional(),
+  dayOfMonth: z.coerce.number().min(1).max(31).optional(),
+  monthlyWeek: z.enum(['first', 'second', 'third', 'fourth', 'last']).optional(),
+  monthlyDayOfWeek: z.string().optional(),
+  monthlyPosition: z.enum(['first', 'last']).optional(),
+}).superRefine((data, ctx) => {
+  if (data.recurrenceType === 'weekly' || data.recurrenceType === 'biweekly') {
+    if (!data.dayOfWeek) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['dayOfWeek'], message: 'Day of the week is required.' });
+    }
+  }
+  if (data.recurrenceType === 'biweekly') {
+    if (!data.biweeklyWeeks) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['biweeklyWeeks'], message: 'Bi-weekly schedule is required.' });
+    }
+  }
+  if (data.recurrenceType === 'monthly') {
+    if (!data.monthlyType) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['monthlyType'], message: 'Monthly schedule type is required.' });
+    } else {
+      if (data.monthlyType === 'dayOfMonth' && data.dayOfMonth === undefined) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['dayOfMonth'], message: 'Day of month is required.' });
+      } else if (data.monthlyType === 'dayOfWeek') {
+        if (!data.monthlyWeek) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['monthlyWeek'], message: 'Week is required.' });
+        if (!data.monthlyDayOfWeek) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['monthlyDayOfWeek'], message: 'Day of week is required.' });
+      } else if (data.monthlyType === 'firstLastDay' && !data.monthlyPosition) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['monthlyPosition'], message: 'Position is required.' });
+      }
+    }
+  }
+});
+
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -78,6 +82,13 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
       recurrenceType: 'daily',
       isAllDay: true,
       time: '09:00',
+      dayOfWeek: '1',
+      biweeklyWeeks: 'first_third',
+      monthlyType: 'dayOfMonth',
+      dayOfMonth: 1,
+      monthlyWeek: 'first',
+      monthlyDayOfWeek: '1',
+      monthlyPosition: 'first',
     },
   });
 
@@ -111,26 +122,26 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
         recurrence = { type: 'daily' };
         break;
       case 'weekly':
-        recurrence = { type: 'weekly', dayOfWeek: parseInt(values.dayOfWeek, 10) };
+        recurrence = { type: 'weekly', dayOfWeek: parseInt(values.dayOfWeek!, 10) };
         break;
       case 'biweekly':
-        recurrence = { type: 'biweekly', dayOfWeek: parseInt(values.dayOfWeek, 10), biweeklyWeeks: values.biweeklyWeeks };
+        recurrence = { type: 'biweekly', dayOfWeek: parseInt(values.dayOfWeek!, 10), biweeklyWeeks: values.biweeklyWeeks! };
         break;
       case 'monthly':
         if (values.monthlyType === 'dayOfMonth') {
-          recurrence = { type: 'monthly', monthlyType: 'dayOfMonth', day: values.dayOfMonth };
+          recurrence = { type: 'monthly', monthlyType: 'dayOfMonth', day: values.dayOfMonth! };
         } else if (values.monthlyType === 'dayOfWeek') {
           recurrence = {
             type: 'monthly',
             monthlyType: 'dayOfWeek',
-            week: values.monthlyWeek,
-            dayOfWeek: parseInt(values.monthlyDayOfWeek, 10),
+            week: values.monthlyWeek!,
+            dayOfWeek: parseInt(values.monthlyDayOfWeek!, 10),
           };
         } else { // firstLastDay
           recurrence = {
             type: 'monthly',
             monthlyType: 'firstLastDay',
-            position: values.monthlyPosition,
+            position: values.monthlyPosition!,
           };
         }
         break;
