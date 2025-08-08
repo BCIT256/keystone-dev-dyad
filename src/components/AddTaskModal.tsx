@@ -43,7 +43,7 @@ const formSchema = z.object({
   }),
   z.object({
     recurrenceType: z.literal('monthly'),
-    monthlyType: z.enum(['dayOfMonth', 'dayOfWeek']),
+    monthlyType: z.enum(['dayOfMonth', 'dayOfWeek', 'firstLastDay']),
   }).and(z.union([
     z.object({
       monthlyType: z.literal('dayOfMonth'),
@@ -53,6 +53,10 @@ const formSchema = z.object({
       monthlyType: z.literal('dayOfWeek'),
       monthlyWeek: z.enum(['first', 'second', 'third', 'fourth', 'last']),
       monthlyDayOfWeek: z.string().min(1, "Day of the week is required."),
+    }),
+    z.object({
+      monthlyType: z.literal('firstLastDay'),
+      monthlyPosition: z.enum(['first', 'last']),
     }),
   ])),
 ]));
@@ -80,6 +84,7 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
       dayOfMonth: 1,
       monthlyWeek: 'first',
       monthlyDayOfWeek: '1',
+      monthlyPosition: 'first',
     },
   });
 
@@ -99,6 +104,7 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
         dayOfMonth: 1,
         monthlyWeek: 'first',
         monthlyDayOfWeek: '1',
+        monthlyPosition: 'first',
       });
       setPlaceholder(getRandomTaskExample());
     }
@@ -120,12 +126,18 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
       case 'monthly':
         if (values.monthlyType === 'dayOfMonth') {
           recurrence = { type: 'monthly', monthlyType: 'dayOfMonth', day: values.dayOfMonth };
-        } else {
+        } else if (values.monthlyType === 'dayOfWeek') {
           recurrence = {
             type: 'monthly',
             monthlyType: 'dayOfWeek',
             week: values.monthlyWeek,
             dayOfWeek: parseInt(values.monthlyDayOfWeek, 10),
+          };
+        } else { // firstLastDay
+          recurrence = {
+            type: 'monthly',
+            monthlyType: 'firstLastDay',
+            position: values.monthlyPosition,
           };
         }
         break;
@@ -216,7 +228,11 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                         </FormItem>
                         <FormItem className="flex items-center space-x-3 space-y-0">
                           <FormControl><RadioGroupItem value="dayOfWeek" /></FormControl>
-                          <FormLabel className="font-normal">On a relative day</FormLabel>
+                          <FormLabel className="font-normal">On a relative day of the week</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl><RadioGroupItem value="firstLastDay" /></FormControl>
+                          <FormLabel className="font-normal">On the first or last day</FormLabel>
                         </FormItem>
                       </RadioGroup>
                     </FormControl>
@@ -258,6 +274,25 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                       </FormItem>
                     )} />
                   </div>
+                )}
+
+                {monthlyType === 'firstLastDay' && (
+                  <FormField control={form.control} name="monthlyPosition" render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex gap-4 pt-2">
+                          <FormItem className="flex items-center space-x-2">
+                            <FormControl><RadioGroupItem value="first" id="m-first" /></FormControl>
+                            <Label htmlFor="m-first" className="font-normal">First day of month</Label>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2">
+                            <FormControl><RadioGroupItem value="last" id="m-last" /></FormControl>
+                            <Label htmlFor="m-last" className="font-normal">Last day of month</Label>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                    </FormItem>
+                  )} />
                 )}
               </div>
             )}

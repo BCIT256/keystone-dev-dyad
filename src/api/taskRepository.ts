@@ -51,6 +51,14 @@ const mockTasks: Task[] = [
     dueTime: '18:30',
     createdAt: new Date().toISOString(),
   },
+  {
+    id: '7',
+    userId: 'user-1',
+    title: 'Review monthly goals',
+    recurrence: { type: 'monthly', monthlyType: 'firstLastDay', position: 'last' }, // Last day of month
+    dueTime: 'all_day',
+    createdAt: new Date().toISOString(),
+  },
 ];
 
 const mockCompletions: TaskCompletion[] = [];

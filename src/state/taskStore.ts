@@ -81,7 +81,6 @@ export const useTaskStore = create<TaskState>((set, get) => ({
           const { recurrence } = t;
           if (recurrence.monthlyType === 'dayOfMonth') {
             const lastDay = getDate(endOfMonth(date));
-            // If task is for day 31 but month has 28, show on 28th
             if (recurrence.day > lastDay) {
               return dayOfMonth === lastDay;
             }
@@ -89,6 +88,14 @@ export const useTaskStore = create<TaskState>((set, get) => ({
           }
           if (recurrence.monthlyType === 'dayOfWeek') {
             return isCorrectWeekOfMonth(date, recurrence.week, recurrence.dayOfWeek);
+          }
+          if (recurrence.monthlyType === 'firstLastDay') {
+            if (recurrence.position === 'first') {
+              return dayOfMonth === 1;
+            }
+            if (recurrence.position === 'last') {
+              return dayOfMonth === getDate(endOfMonth(date));
+            }
           }
           return false;
         }

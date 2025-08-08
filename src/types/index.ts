@@ -7,6 +7,10 @@ export type MonthlyRecurrence =
       monthlyType: 'dayOfWeek';
       week: 'first' | 'second' | 'third' | 'fourth' | 'last';
       dayOfWeek: number; // 0-6, Sunday-Saturday
+    }
+  | {
+      monthlyType: 'firstLastDay';
+      position: 'first' | 'last';
     };
 
 export type Recurrence =
@@ -18,7 +22,7 @@ export type Recurrence =
 export interface Task {
   id: string;
   userId: string; // Mocked
-  title: string;
+  title:string;
   recurrence: Recurrence;
   dueTime?: string; // 'HH:MM' format or 'all_day'
   createdAt: string; // ISO 8601 timestamp
