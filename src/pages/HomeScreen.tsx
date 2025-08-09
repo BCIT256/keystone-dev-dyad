@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useTaskStore } from '@/state/taskStore';
-import { format, isToday, isYesterday, isTomorrow } from 'date-fns';
+import { format, isToday, isYesterday, isTomorrow, subDays, isAfter, startOfDay } from 'date-fns';
 import { TaskItem } from '@/components/TaskItem';
 import { AddTaskButton } from '@/components/AddTaskButton';
 import { AddTaskModal } from '@/components/AddTaskModal';
@@ -48,16 +48,11 @@ export default function HomeScreen() {
   }, [fetchTasks, setDailyQuote]);
 
   useEffect(() => {
-    controls.start({ opacity: 1, x: 0, transition: { duration: 0.4, ease: "easeOut" } });
+    controls.start({ opacity: 1, x: 0, transition: { duration: 0.25, ease: "easeOut" } });
   }, [viewDate, controls]);
 
-  const dragHandler: Handler<'drag'> = ({ active, movement: [mx, my], direction: [xDir, yDir], cancel }) => {
+  const dragHandler: Handler<'drag'> = ({ active, movement: [mx, my], direction: [xDir, yDir] }) => {
     if (active) {
-      // If swipe is mostly vertical, cancel to allow native scrolling
-      if (Math.abs(my) > Math.abs(mx) * 2) {
-        cancel();
-        return;
-      }
       controls.start({ x: mx, opacity: 1 - Math.abs(mx) / (containerRef.current?.offsetWidth || 500), immediate: true });
     } else {
       const dragThreshold = (containerRef.current?.offsetWidth || 500) / 3.5;
@@ -66,7 +61,7 @@ export default function HomeScreen() {
       // Swipe down to refresh to today
       if (isVerticalSwipe && yDir > 0 && my > 80) {
         if (!isToday(viewDate)) {
-          controls.start({ opacity: 0, transition: { duration: 0.2 } }).then(goToToday);
+          controls.start({ opacity: 0, transition: { duration: 0.15 } }).then(goToToday);
         } else {
           controls.start({ y: [0, -20, 0], transition: { duration: 0.3 } }); // Jiggle if already on today
         }
@@ -76,7 +71,18 @@ export default function HomeScreen() {
       // Horizontal swipe to change day
       if (!isVerticalSwipe && Math.abs(mx) > dragThreshold) {
         const direction = xDir > 0 ? 1 : -1;
-        controls.start({ x: direction * 500, opacity: 0, transition: { duration: 0.2 } }).then(() => {
+
+        // Prevent swiping to a day before yesterday
+        if (direction === 1) { // Swiping right to previous day
+          const yesterday = subDays(new Date(), 1);
+          if (!isAfter(startOfDay(viewDate), startOfDay(yesterday))) {
+            // On or before yesterday, so snap back
+            controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } });
+            return;
+          }
+        }
+
+        controls.start({ x: direction * 500, opacity: 0, transition: { duration: 0.15 } }).then(() => {
           if (direction === 1) {
             previousDay();
           } else {
@@ -86,7 +92,7 @@ export default function HomeScreen() {
         });
       } else {
         // Snap back to center if not dragged far enough
-        controls.start({ x: 0, opacity: 1 });
+        controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } });
       }
     }
   };
