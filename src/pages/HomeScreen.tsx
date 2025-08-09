@@ -14,6 +14,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { HelpCircle } from 'lucide-react';
 import { useQuoteStore } from '@/state/quoteStore';
 import { useSession } from '@/components/AuthProvider';
+import { useProfileStore } from '@/state/profileStore';
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -37,7 +38,8 @@ const getAgendaTitle = (date: Date) => {
 };
 
 export default function HomeScreen() {
-  const { fetchData, getTasksForDate, isLoading, viewDate, adsVisible, nextDay, previousDay, goToToday, completeAllTasks } = useTaskStore();
+  const { fetchData: fetchTaskData, getTasksForDate, isLoading: areTasksLoading, viewDate, adsVisible, nextDay, previousDay, completeAllTasks } = useTaskStore();
+  const { profile, isLoading: isProfileLoading, fetchProfile, updateStreak } = useProfileStore();
   const { currentQuote, setDailyQuote } = useQuoteStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const controls = useAnimation();
@@ -46,10 +48,18 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (session) {
-      fetchData();
+      fetchProfile();
+      fetchTaskData();
     }
     setDailyQuote();
-  }, [session, fetchData, setDailyQuote]);
+  }, [session, fetchProfile, fetchTaskData, setDailyQuote]);
+
+  useEffect(() => {
+    // This effect runs when both profile and tasks are loaded.
+    if (!isProfileLoading && !areTasksLoading && session) {
+      updateStreak();
+    }
+  }, [isProfileLoading, areTasksLoading, session, updateStreak]);
 
   useEffect(() => {
     controls.start({ opacity: 1, x: 0, transition: { duration: 0.25, ease: "easeOut" } });
@@ -65,23 +75,21 @@ export default function HomeScreen() {
       return;
     }
 
-    // Drag has ended
     const dragThreshold = (containerRef.current?.offsetWidth || 500) / 3.5;
     if (Math.abs(mx) > dragThreshold) {
       const direction = xDir > 0 ? 1 : -1;
-      if (direction === 1) { // Swiping right to previous day
+      if (direction === 1) {
         const yesterday = subDays(new Date(), 1);
         if (!isAfter(startOfDay(viewDate), startOfDay(yesterday))) {
-          controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } }); // Snap back
+          controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } });
           return;
         }
       }
       controls.start({ x: direction * 500, opacity: 0, transition: { duration: 0.15 } }).then(() => {
         if (direction === 1) previousDay(); else nextDay();
-        controls.set({ x: -direction * 500 }); // Prepare for animate in
+        controls.set({ x: -direction * 500 });
       });
     } else {
-      // If not dragged far enough, snap back
       controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } });
     }
   };
@@ -98,6 +106,7 @@ export default function HomeScreen() {
   const tasksForDate = getTasksForDate(viewDate);
   const dailyTasks = tasksForDate.filter(t => t.task.recurrence.type === 'daily');
   const scheduledTasks = tasksForDate.filter(t => t.task.recurrence.type !== 'daily');
+  const isLoading = areTasksLoading || isProfileLoading;
 
   return (
     <div className="container mx-auto p-4 md:p-8 flex flex-col flex-grow overflow-x-hidden" ref={containerRef}>
@@ -117,7 +126,9 @@ export default function HomeScreen() {
               <div className="flex justify-between items-center gap-4">
                 <div>
                   <CardTitle className="text-xl">{getAgendaTitle(viewDate)}</CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">🔥 5-day streak!</p>
+                  {profile && profile.streak > 0 && (
+                    <p className="text-sm text-muted-foreground mt-1">🔥 {profile.streak}-day streak!</p>
+                  )}
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
                     <Button variant="outline" size="sm" onClick={handleCompleteAll}>I'm finished</Button>
