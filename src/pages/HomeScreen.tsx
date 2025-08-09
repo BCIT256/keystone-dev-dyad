@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { HelpCircle } from 'lucide-react';
 import { useQuoteStore } from '@/state/quoteStore';
+import { useSession } from '@/components/AuthProvider';
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -36,16 +37,19 @@ const getAgendaTitle = (date: Date) => {
 };
 
 export default function HomeScreen() {
-  const { fetchTasks, getTasksForDate, isLoading, viewDate, adsVisible, nextDay, previousDay, goToToday, completeAllTasks } = useTaskStore();
+  const { fetchData, getTasksForDate, isLoading, viewDate, adsVisible, nextDay, previousDay, goToToday, completeAllTasks } = useTaskStore();
   const { currentQuote, setDailyQuote } = useQuoteStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
+  const session = useSession();
 
   useEffect(() => {
-    fetchTasks();
+    if (session) {
+      fetchData();
+    }
     setDailyQuote();
-  }, [fetchTasks, setDailyQuote]);
+  }, [session, fetchData, setDailyQuote]);
 
   useEffect(() => {
     controls.start({ opacity: 1, x: 0, transition: { duration: 0.25, ease: "easeOut" } });

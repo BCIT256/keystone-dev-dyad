@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Task, TaskCompletion } from '../types';
 import { TaskRepository } from '../api/taskRepository';
-import { format, getDay, getDate, addDays, subDays, endOfMonth, isToday, isYesterday, isTomorrow, isAfter, startOfDay } from 'date-fns';
+import { format, getDay, getDate, addDays, subDays, endOfMonth, isAfter, startOfDay } from 'date-fns';
 import { showSuccess } from '@/utils/toast';
 
 interface TaskState {
@@ -11,15 +11,16 @@ interface TaskState {
   viewDate: Date;
   adsVisible: boolean;
   getTasksForDate: (date: Date) => { task: Task; isComplete: boolean }[];
-  addTask: (task: Omit<Task, 'id' | 'userId' | 'createdAt'>) => Promise<void>;
+  addTask: (task: Omit<Task, 'id' | 'user_id' | 'created_at'>) => Promise<void>;
   toggleTaskCompletion: (taskId: string, date: Date) => void;
-  fetchTasks: () => Promise<void>;
+  fetchData: () => Promise<void>;
   nextDay: () => void;
   previousDay: () => void;
   goToToday: () => void;
   setCurrentDate: (date: Date) => void;
   hideAds: () => void;
   completeAllTasks: (date: Date) => Promise<void>;
+  clearData: () => void;
 }
 
 const getWeekOfMonth = (date: Date): number => {
@@ -48,13 +49,18 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   viewDate: new Date(),
   adsVisible: true,
 
-  fetchTasks: async () => {
+  fetchData: async () => {
     set({ isLoading: true });
-    const [tasks, completions] = await Promise.all([
-      TaskRepository.getTasks(),
-      TaskRepository.getCompletions(),
-    ]);
-    set({ tasks, completions, isLoading: false });
+    try {
+      const [tasks, completions] = await Promise.all([
+        TaskRepository.getTasks(),
+        TaskRepository.getCompletions(),
+      ]);
+      set({ tasks, completions, isLoading: false });
+    } catch (error) {
+      console.error("Failed to fetch data, user might be logged out.", error);
+      set({ isLoading: false, tasks: [], completions: [] });
+    }
   },
 
   getTasksForDate: (date: Date) => {
@@ -108,7 +114,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     });
 
     return tasksForDate.map(task => {
-      const isComplete = completions.some(c => c.taskId === task.id && c.completionDate === dateString);
+      const isComplete = completions.some(c => c.task_id === task.id && c.completion_date === dateString);
       return { task, isComplete };
     }).sort((a, b) => a.task.title.localeCompare(b.task.title));
   },
@@ -121,7 +127,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   toggleTaskCompletion: async (taskId: string, date: Date) => {
     const dateString = format(date, 'yyyy-MM-dd');
     const { completions } = get();
-    const existingCompletion = completions.find(c => c.taskId === taskId && c.completionDate === dateString);
+    const existingCompletion = completions.find(c => c.task_id === taskId && c.completion_date === dateString);
 
     if (existingCompletion) {
       await TaskRepository.removeCompletion(taskId, dateString);
@@ -167,7 +173,6 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   previousDay: () => {
     set(state => {
       const yesterday = subDays(new Date(), 1);
-      // Do nothing if we are on or before yesterday
       if (!isAfter(startOfDay(state.viewDate), startOfDay(yesterday))) {
         return {};
       }
@@ -184,4 +189,8 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   hideAds: () => {
     set({ adsVisible: false });
   },
+
+  clearData: () => {
+    set({ tasks: [], completions: [], isLoading: true });
+  }
 }));

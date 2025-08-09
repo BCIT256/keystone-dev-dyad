@@ -13,9 +13,11 @@ import { Button } from "@/components/ui/button";
 import { showSuccess, showError } from "@/utils/toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useTaskStore } from "@/state/taskStore";
 
 export function LogoutConfirmationDialog() {
   const navigate = useNavigate();
+  const clearData = useTaskStore((state) => state.clearData);
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -23,6 +25,7 @@ export function LogoutConfirmationDialog() {
       showError(`Logout failed: ${error.message}`);
     } else {
       showSuccess("You have been logged out.");
+      clearData();
       navigate('/login', { replace: true });
     }
   };

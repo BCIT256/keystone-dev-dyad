@@ -147,10 +147,10 @@ export function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
         break;
     }
 
-    const taskData: Omit<Task, 'id' | 'userId' | 'createdAt'> = {
+    const taskData: Omit<Task, 'id' | 'user_id' | 'created_at'> = {
       title: values.title,
       recurrence,
-      dueTime: values.isAllDay ? 'all_day' : values.time,
+      due_time: values.isAllDay ? 'all_day' : values.time,
     };
 
     addTask(taskData);

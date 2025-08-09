@@ -21,15 +21,16 @@ export type Recurrence =
 
 export interface Task {
   id: string;
-  userId: string; // Mocked
-  title:string;
+  user_id: string;
+  title: string;
   recurrence: Recurrence;
-  dueTime?: string; // 'HH:MM' format or 'all_day'
-  createdAt: string; // ISO 8601 timestamp
+  due_time?: string; // 'HH:MM' format or 'all_day'
+  created_at: string; // ISO 8601 timestamp
 }
 
 export interface TaskCompletion {
   id: string;
-  taskId: string;
-  completionDate: string; // 'YYYY-MM-DD' format
+  user_id: string;
+  task_id: string;
+  completion_date: string; // 'YYYY-MM-DD' format
 }

@@ -34,9 +34,9 @@ export function TaskItem({ task, isComplete }: TaskItemProps) {
       >
         {task.title}
       </label>
-      {task.dueTime && task.dueTime !== 'all_day' && (
+      {task.due_time && task.due_time !== 'all_day' && (
         <span className="ml-auto text-sm font-mono text-muted-foreground">
-          {task.dueTime}
+          {task.due_time}
         </span>
       )}
     </div>
