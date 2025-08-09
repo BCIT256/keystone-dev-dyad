@@ -13,6 +13,7 @@ import { motion, useAnimation } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { HelpCircle } from 'lucide-react';
+import { useQuoteStore } from '@/state/quoteStore';
 
 const getGreeting = () => {
   const hour = new Date().getHours();
@@ -23,13 +24,15 @@ const getGreeting = () => {
 
 export default function HomeScreen() {
   const { fetchTasks, getTasksForDate, isLoading, currentDate, adsVisible, nextDay, previousDay, completeAllTasks } = useTaskStore();
+  const { currentQuote, setDailyQuote } = useQuoteStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchTasks();
-  }, [fetchTasks]);
+    setDailyQuote();
+  }, [fetchTasks, setDailyQuote]);
 
   const dragHandler: Handler<'drag'> = ({ active, down, movement: [mx], direction: [xDir] }) => {
     const dragDistance = Math.abs(mx);
@@ -72,9 +75,20 @@ export default function HomeScreen() {
       </header>
 
       <motion.div {...bind() as any} animate={controls} className="cursor-grab active:cursor-grabbing" style={{ touchAction: 'pan-y' }}>
-        <div className="my-8 flex justify-center">
+        <div className="flex justify-center">
           <img src="/placeholder.svg" alt="Artwork" className="w-full max-w-md h-56 object-cover rounded-xl bg-muted" />
         </div>
+
+        {currentQuote && (
+          <figure className="my-8 text-center max-w-md mx-auto">
+            <blockquote className="font-dancing-script text-2xl italic text-foreground">
+              “{currentQuote.quoteText}”
+            </blockquote>
+            <figcaption className="mt-2 text-sm text-muted-foreground">
+              — {currentQuote.attributedAuthor}
+            </figcaption>
+          </figure>
+        )}
 
         <main className="flex flex-col flex-grow">
           <Card>

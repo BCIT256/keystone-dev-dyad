@@ -18,6 +18,9 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        'dancing-script': ['"Dancing Script"', 'cursive'],
+      },
       fontSize: {
         'xs': '0.75rem',    // 12px
         'sm': '0.9375rem',  // 15px
