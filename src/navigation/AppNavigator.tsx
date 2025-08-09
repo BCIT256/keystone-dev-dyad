@@ -21,7 +21,7 @@ export default function AppNavigator() {
   const mainContentPaddingBottom = adsVisible ? '132px' : '80px';
 
   return (
-    <div className="flex flex-col min-h-screen bg-card">
+    <div className="flex flex-col min-h-screen bg-muted">
       <main
         className="flex-grow flex flex-col"
         style={{ paddingBottom: mainContentPaddingBottom }}
@@ -35,7 +35,7 @@ export default function AppNavigator() {
 
       <div className="fixed bottom-0 left-0 right-0 w-full z-10">
         {adsVisible && <AdBanner />}
-        <footer className="bg-background border-t">
+        <footer className="bg-card border-t">
           <nav className="container mx-auto flex justify-around items-center h-20 max-w-lg">
             {navItems.map(({ href, label, icon: Icon }) => (
               <NavLink

@@ -185,7 +185,7 @@ export default function HomeScreen() {
 
           {currentQuote && (
             <figure className="my-8 text-center max-w-md mx-auto">
-              <blockquote className="font-mono text-xl font-light text-foreground">
+              <blockquote className="font-dancing-script text-2xl text-foreground">
                 “{currentQuote.quoteText}”
               </blockquote>
               <figcaption className="mt-2 text-sm text-muted-foreground">
