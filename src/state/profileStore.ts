@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { Profile, ProfileRepository } from '@/api/profileRepository';
 import { useTaskStore } from './taskStore';
 import { differenceInCalendarDays, subDays, format } from 'date-fns';
+import { showSuccess, showError } from '@/utils/toast';
 
 interface ProfileState {
   profile: Profile | null;
@@ -9,6 +10,7 @@ interface ProfileState {
   fetchProfile: () => Promise<void>;
   updateStreak: () => Promise<void>;
   setHasRemovedAds: () => Promise<void>;
+  updateProfile: (updates: Partial<Omit<Profile, 'id' | 'updated_at'>>) => Promise<void>;
 }
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
@@ -46,7 +48,6 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     let newStreak = profile.streak;
 
     if (daysDifference === 1) {
-      // It's the next day, check yesterday's tasks
       const yesterday = subDays(today, 1);
       const tasksForYesterday = useTaskStore.getState().getTasksForDate(yesterday);
       const allTasksCompleted = tasksForYesterday.every(t => t.isComplete);
@@ -57,7 +58,6 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         newStreak = 0;
       }
     } else {
-      // Missed one or more days, reset streak
       newStreak = 0;
     }
 
@@ -75,5 +75,15 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       has_removed_ads: true,
     });
     set({ profile: updatedProfile });
+  },
+  updateProfile: async (updates) => {
+    try {
+      const updatedProfile = await ProfileRepository.updateProfile(updates);
+      set({ profile: updatedProfile });
+      showSuccess("Profile updated successfully!");
+    } catch (error) {
+      showError("There was an error updating your profile.");
+      console.error("Failed to update profile", error);
+    }
   },
 }));

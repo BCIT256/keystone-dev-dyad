@@ -1,7 +1,7 @@
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useSession } from '@/components/AuthProvider';
 import { useEffect } from 'react';
 import { PageLoader } from '@/components/PageLoader';
@@ -32,9 +32,17 @@ const Login = () => {
             supabaseClient={supabase}
             appearance={{ theme: ThemeSupa }}
             providers={[]}
+            view="sign_in"
             theme="light"
+            showLinks={false}
           />
         </div>
+        <p className="text-center text-sm text-muted-foreground">
+          Don't have an account?{' '}
+          <Link to="/signup" className="font-medium text-primary hover:underline">
+            Sign Up
+          </Link>
+        </p>
       </div>
     </div>
   );

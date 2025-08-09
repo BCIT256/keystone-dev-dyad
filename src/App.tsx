@@ -17,6 +17,7 @@ const SettingsScreen = lazy(() => import("./pages/SettingsScreen"));
 const PurchaseScreen = lazy(() => import("./pages/PurchaseScreen"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Login = lazy(() => import("./pages/Login"));
+const SignUp = lazy(() => import("./pages/SignUp"));
 
 const App = () => (
   <ErrorBoundary>
@@ -30,6 +31,7 @@ const App = () => (
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<SignUp />} />
                   <Route element={<ProtectedRoute />}>
                     <Route path="/" element={<Index />} />
                     <Route path="/settings" element={<SettingsScreen />} />

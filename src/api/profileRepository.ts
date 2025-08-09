@@ -10,6 +10,7 @@ export interface Profile {
   last_streak_check: string | null; // YYYY-MM-DD
   is_premium: boolean;
   has_removed_ads: boolean;
+  state: string | null;
 }
 
 export class ProfileRepository {
