@@ -51,15 +51,15 @@ export default function HomeScreen() {
     controls.start({ opacity: 1, x: 0, transition: { duration: 0.25, ease: "easeOut" } });
   }, [viewDate, controls]);
 
-  const dragHandler: Handler<'drag'> = ({ active, movement: [mx, my], direction: [xDir, yDir] }) => {
+  const dragHandler: Handler<'drag'> = ({ active, movement: [mx, my], direction: [xDir, yDir], initial: [, iy] }) => {
     if (active) {
       controls.start({ x: mx, opacity: 1 - Math.abs(mx) / (containerRef.current?.offsetWidth || 500), immediate: true });
     } else {
       const dragThreshold = (containerRef.current?.offsetWidth || 500) / 3.5;
       const isVerticalSwipe = Math.abs(my) > Math.abs(mx);
 
-      // Swipe down to refresh to today
-      if (isVerticalSwipe && yDir > 0 && my > 80) {
+      // Swipe down to refresh to today, only from top of screen (e.g., first 150px)
+      if (isVerticalSwipe && yDir > 0 && my > 80 && iy < 150) {
         if (!isToday(viewDate)) {
           controls.start({ opacity: 0, transition: { duration: 0.15 } }).then(goToToday);
         } else {
@@ -115,21 +115,6 @@ export default function HomeScreen() {
       </header>
 
       <motion.div {...bind() as any} animate={controls} className="cursor-grab active:cursor-grabbing" style={{ touchAction: 'pan-y' }}>
-        <div className="flex justify-center">
-          <img src="/placeholder.svg" alt="Artwork" className="w-full max-w-md h-56 object-cover rounded-xl bg-muted" />
-        </div>
-
-        {currentQuote && (
-          <figure className="my-8 text-center max-w-md mx-auto">
-            <blockquote className="font-dancing-script text-2xl italic text-foreground">
-              “{currentQuote.quoteText}”
-            </blockquote>
-            <figcaption className="mt-2 text-sm text-muted-foreground">
-              — {currentQuote.attributedAuthor}
-            </figcaption>
-          </figure>
-        )}
-
         <main className="flex flex-col flex-grow">
           <Card>
             <CardHeader>
@@ -191,7 +176,22 @@ export default function HomeScreen() {
         </main>
       </motion.div>
 
-      <div className="flex-grow" />
+      <div className="mt-auto pt-8">
+        <div className="flex justify-center">
+          <img src="/placeholder.svg" alt="Artwork" className="w-full max-w-md h-56 object-cover rounded-xl bg-muted" />
+        </div>
+
+        {currentQuote && (
+          <figure className="my-8 text-center max-w-md mx-auto">
+            <blockquote className="font-dancing-script text-2xl italic text-foreground">
+              “{currentQuote.quoteText}”
+            </blockquote>
+            <figcaption className="mt-2 text-sm text-muted-foreground">
+              — {currentQuote.attributedAuthor}
+            </figcaption>
+          </figure>
+        )}
+      </div>
 
       <AddTaskButton onClick={() => setIsModalOpen(true)} adsVisible={adsVisible} />
       <AddTaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
