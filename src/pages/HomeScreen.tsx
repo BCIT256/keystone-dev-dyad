@@ -53,91 +53,40 @@ export default function HomeScreen() {
   }, [viewDate, controls]);
 
   const dragHandler: Handler<'drag'> = ({
-    event,
     active,
-    movement: [mx, my],
-    direction: [xDir, yDir],
-    initial: [, iy],
-    last,
-    cancel,
+    movement: [mx],
+    direction: [xDir],
   }) => {
-    const targetIsAgenda = agendaCardRef.current?.contains(event.target as Node);
-    const isVertical = Math.abs(my) > Math.abs(mx);
-
-    // If the gesture should be a native scroll, we cancel the drag gesture.
-    // This applies to:
-    // 1. Any swipe not on the agenda card.
-    // 2. An upward swipe (scrolling down) on the agenda card.
-    if (!targetIsAgenda || (isVertical && yDir < 0)) {
-      return cancel();
-    }
-
-    // At this point, the gesture is on the agenda and is either horizontal or downwards.
-    // We will handle it, so the default scroll behavior should be prevented.
-
     if (active) {
-      // Provide horizontal drag feedback during the gesture
-      if (!isVertical) {
-        controls.start({ x: mx, opacity: 1 - Math.abs(mx) / (containerRef.current?.offsetWidth || 500) }, { duration: 0 });
-      }
+      controls.start({ x: mx, opacity: 1 - Math.abs(mx) / (containerRef.current?.offsetWidth || 500) }, { duration: 0 });
       return;
     }
 
-    // --- Drag has ended, decide which action to take ---
-
-    // Handle horizontal swipe on the agenda card
-    if (!isVertical) {
-      const dragThreshold = (containerRef.current?.offsetWidth || 500) / 3.5;
-      if (Math.abs(mx) > dragThreshold) {
-        const direction = xDir > 0 ? 1 : -1;
-        if (direction === 1) { // Swiping right to previous day
-          const yesterday = subDays(new Date(), 1);
-          if (!isAfter(startOfDay(viewDate), startOfDay(yesterday))) {
-            controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } }); // Snap back
-            return;
-          }
+    // Drag has ended
+    const dragThreshold = (containerRef.current?.offsetWidth || 500) / 3.5;
+    if (Math.abs(mx) > dragThreshold) {
+      const direction = xDir > 0 ? 1 : -1;
+      if (direction === 1) { // Swiping right to previous day
+        const yesterday = subDays(new Date(), 1);
+        if (!isAfter(startOfDay(viewDate), startOfDay(yesterday))) {
+          controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } }); // Snap back
+          return;
         }
-        controls.start({ x: direction * 500, opacity: 0, transition: { duration: 0.15 } }).then(() => {
-          if (direction === 1) previousDay(); else nextDay();
-          controls.set({ x: -direction * 500 }); // Prepare for animate in
-        });
-      } else {
-        // If not dragged far enough, snap back
-        controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } });
       }
-      return;
-    }
-
-    // Handle vertical swipe down on the agenda card
-    if (isVertical && yDir > 0) {
-      // Case 1: Swipe down from the top of the screen to go to Today's agenda
-      if (iy < 150) {
-        if (my > 80) { // Check if dragged far enough
-          if (!isToday(viewDate)) {
-            controls.start({ opacity: 0, transition: { duration: 0.15 } }).then(goToToday);
-          } else {
-            // Jiggle if already on today
-            controls.start({ x: 0, y: [0, -20, 0], transition: { duration: 0.3 } });
-          }
-        } else {
-          controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } });
-        }
-        return;
-      }
-      
-      // Case 2: Swipe down when not at the top of the screen to scroll to the top
-      if (iy >= 150) {
-        if (my > 50) { // Check if dragged far enough
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-        // Snap back any minor horizontal movement
-        controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } });
-        return;
-      }
+      controls.start({ x: direction * 500, opacity: 0, transition: { duration: 0.15 } }).then(() => {
+        if (direction === 1) previousDay(); else nextDay();
+        controls.set({ x: -direction * 500 }); // Prepare for animate in
+      });
+    } else {
+      // If not dragged far enough, snap back
+      controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } });
     }
   };
 
-  const bind = useDrag(dragHandler, { threshold: 10 });
+  const bind = useDrag(dragHandler, {
+    axis: 'x',
+    threshold: 10,
+  });
 
   const handleCompleteAll = () => {
     completeAllTasks(viewDate);
@@ -148,7 +97,7 @@ export default function HomeScreen() {
   const scheduledTasks = tasksForDate.filter(t => t.task.recurrence.type !== 'daily');
 
   return (
-    <div {...bind() as any} className="container mx-auto p-4 md:p-8 flex flex-col flex-grow overflow-x-hidden" ref={containerRef} style={{ touchAction: 'none' }}>
+    <div className="container mx-auto p-4 md:p-8 flex flex-col flex-grow overflow-x-hidden" ref={containerRef}>
       <header className="mb-8">
         <h1 className="text-4xl font-bold tracking-tighter">{getGreeting()}, User</h1>
         <p className="text-lg text-muted-foreground mt-2">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
@@ -156,7 +105,7 @@ export default function HomeScreen() {
 
       <motion.div animate={controls} className="flex flex-col flex-grow">
         <main className="flex flex-col flex-grow">
-          <Card ref={agendaCardRef} className="cursor-grab active:cursor-grabbing">
+          <Card ref={agendaCardRef} {...bind() as any} className="cursor-grab active:cursor-grabbing" style={{ touchAction: 'pan-y' }}>
             <CardHeader>
               <div className="flex justify-between items-center gap-4">
                 <div>
