@@ -8,6 +8,7 @@ interface ProfileState {
   isLoading: boolean;
   fetchProfile: () => Promise<void>;
   updateStreak: () => Promise<void>;
+  setHasRemovedAds: () => Promise<void>;
 }
 
 export const useProfileStore = create<ProfileState>((set, get) => ({
@@ -63,6 +64,15 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     const updatedProfile = await ProfileRepository.updateProfile({
       streak: newStreak,
       last_streak_check: format(today, 'yyyy-MM-dd'),
+    });
+    set({ profile: updatedProfile });
+  },
+  setHasRemovedAds: async () => {
+    const { profile } = get();
+    if (!profile || profile.has_removed_ads) return;
+
+    const updatedProfile = await ProfileRepository.updateProfile({
+      has_removed_ads: true,
     });
     set({ profile: updatedProfile });
   },

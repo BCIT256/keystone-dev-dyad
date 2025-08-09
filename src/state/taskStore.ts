@@ -9,7 +9,6 @@ interface TaskState {
   completions: TaskCompletion[];
   isLoading: boolean;
   viewDate: Date;
-  adsVisible: boolean;
   getTasksForDate: (date: Date) => { task: Task; isComplete: boolean }[];
   addTask: (task: Omit<Task, 'id' | 'user_id' | 'created_at'>) => Promise<void>;
   toggleTaskCompletion: (taskId: string, date: Date) => void;
@@ -18,7 +17,6 @@ interface TaskState {
   previousDay: () => void;
   goToToday: () => void;
   setCurrentDate: (date: Date) => void;
-  hideAds: () => void;
   completeAllTasks: (date: Date) => Promise<void>;
   clearData: () => void;
 }
@@ -47,7 +45,6 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   completions: [],
   isLoading: true,
   viewDate: new Date(),
-  adsVisible: true,
 
   fetchData: async () => {
     set({ isLoading: true });
@@ -184,10 +181,6 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
   setCurrentDate: (date: Date) => {
     set({ viewDate: date });
-  },
-
-  hideAds: () => {
-    set({ adsVisible: false });
   },
 
   clearData: () => {

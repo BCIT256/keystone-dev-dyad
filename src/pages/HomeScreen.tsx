@@ -38,7 +38,7 @@ const getAgendaTitle = (date: Date) => {
 };
 
 export default function HomeScreen() {
-  const { fetchData: fetchTaskData, getTasksForDate, isLoading: areTasksLoading, viewDate, adsVisible, nextDay, previousDay, completeAllTasks } = useTaskStore();
+  const { fetchData: fetchTaskData, getTasksForDate, isLoading: areTasksLoading, viewDate, nextDay, previousDay, completeAllTasks } = useTaskStore();
   const { profile, isLoading: isProfileLoading, fetchProfile, updateStreak } = useProfileStore();
   const { currentQuote, setDailyQuote } = useQuoteStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -107,6 +107,7 @@ export default function HomeScreen() {
   const dailyTasks = tasksForDate.filter(t => t.task.recurrence.type === 'daily');
   const scheduledTasks = tasksForDate.filter(t => t.task.recurrence.type !== 'daily');
   const isLoading = areTasksLoading || isProfileLoading;
+  const adsVisible = !profile?.has_removed_ads;
 
   return (
     <div className="container mx-auto p-4 md:p-8 flex flex-col flex-grow overflow-x-hidden" ref={containerRef}>

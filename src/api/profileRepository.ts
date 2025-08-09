@@ -8,6 +8,8 @@ export interface Profile {
   updated_at: string | null;
   streak: number;
   last_streak_check: string | null; // YYYY-MM-DD
+  is_premium: boolean;
+  has_removed_ads: boolean;
 }
 
 export class ProfileRepository {

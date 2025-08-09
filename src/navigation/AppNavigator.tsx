@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { Home, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useTaskStore } from "@/state/taskStore";
+import { useProfileStore } from "@/state/profileStore";
 import { AdBanner } from "@/components/AdBanner";
 import { PageTransition } from "@/components/PageTransition";
 import { AnimatePresence } from "framer-motion";
@@ -12,8 +12,11 @@ const navItems = [
 ];
 
 export default function AppNavigator() {
-  const { adsVisible } = useTaskStore();
+  const { profile } = useProfileStore();
   const location = useLocation();
+
+  // Default to showing ads if profile is loading or user hasn't purchased
+  const adsVisible = !profile?.has_removed_ads;
 
   // Nav height is h-20 (5rem, 80px).
   // Ad banner height is approx. 52px (3.25rem).

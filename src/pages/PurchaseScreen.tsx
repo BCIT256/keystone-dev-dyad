@@ -1,16 +1,16 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { useTaskStore } from '@/state/taskStore';
+import { useProfileStore } from '@/state/profileStore';
 import { showSuccess } from '@/utils/toast';
 import { Check } from 'lucide-react';
 
 export default function PurchaseScreen() {
-  const { hideAds } = useTaskStore();
+  const { setHasRemovedAds } = useProfileStore();
   const navigate = useNavigate();
 
-  const handleRemoveAds = () => {
-    hideAds();
+  const handleRemoveAds = async () => {
+    await setHasRemovedAds();
     showSuccess("Purchase successful! Ads have been removed.");
     navigate('/settings');
   };
