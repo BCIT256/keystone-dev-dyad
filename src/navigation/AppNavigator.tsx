@@ -21,7 +21,7 @@ export default function AppNavigator() {
   const mainContentPaddingBottom = adsVisible ? '132px' : '80px';
 
   return (
-    <div className="flex flex-col min-h-screen bg-muted/40">
+    <div className="flex flex-col min-h-screen bg-card">
       <main
         className="flex-grow flex flex-col"
         style={{ paddingBottom: mainContentPaddingBottom }}
