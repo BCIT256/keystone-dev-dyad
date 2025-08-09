@@ -78,7 +78,7 @@ export default function HomeScreen() {
     if (active) {
       // Provide horizontal drag feedback during the gesture
       if (!isVertical) {
-        controls.start({ x: mx, opacity: 1 - Math.abs(mx) / (containerRef.current?.offsetWidth || 500) }, { immediate: true });
+        controls.start({ x: mx, opacity: 1 - Math.abs(mx) / (containerRef.current?.offsetWidth || 500) }, { duration: 0 });
       }
       return;
     }
