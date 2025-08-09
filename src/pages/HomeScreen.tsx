@@ -141,7 +141,7 @@ export default function HomeScreen() {
                     <div>
                       <h3 className="text-sm font-semibold text-muted-foreground px-6 pt-4 pb-2">Scheduled Tasks</h3>
                       {scheduledTasks.map(({ task, isComplete }) => (
-                        <TaskItem key={task.id} task={task} isComplete={is_complete} />
+                        <TaskItem key={task.id} task={task} isComplete={isComplete} />
                       ))}
                     </div>
                   )}
