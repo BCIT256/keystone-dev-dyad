@@ -52,34 +52,55 @@ export default function HomeScreen() {
     controls.start({ opacity: 1, x: 0, transition: { duration: 0.25, ease: "easeOut" } });
   }, [viewDate, controls]);
 
-  const cardDragHandler: Handler<'drag'> = ({ active, movement: [mx], direction: [xDir] }) => {
+  const dragHandler: Handler<'drag'> = ({ event, active, movement: [mx, my], direction: [xDir, yDir], initial: [, iy] }) => {
+    const targetIsAgenda = agendaCardRef.current?.contains(event.target as Node);
+    const isVertical = Math.abs(my) > Math.abs(mx);
+
     if (active) {
-      controls.start({ x: mx, opacity: 1 - Math.abs(mx) / (containerRef.current?.offsetWidth || 500), immediate: true });
-    } else {
-      const dragThreshold = (containerRef.current?.offsetWidth || 500) / 3.5;
-      if (Math.abs(mx) > dragThreshold) {
-        const direction = xDir > 0 ? 1 : -1;
-
-        if (direction === 1) { // Swiping right to previous day
-          const yesterday = subDays(new Date(), 1);
-          if (!isAfter(startOfDay(viewDate), startOfDay(yesterday))) {
-            controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } }); // Snap back
-            return;
-          }
-        }
-
-        controls.start({ x: direction * 500, opacity: 0, transition: { duration: 0.15 } }).then(() => {
-          if (direction === 1) previousDay(); else nextDay();
-          controls.set({ x: -direction * 500 }); // Prepare for animate in
-        });
-      } else {
-        // Snap back to center
-        controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } });
+      // Only provide horizontal drag feedback if the swipe is on the agenda card
+      if (targetIsAgenda && !isVertical) {
+        controls.start({ x: mx, opacity: 1 - Math.abs(mx) / (containerRef.current?.offsetWidth || 500), immediate: true });
       }
+      return;
+    }
+
+    // --- Drag has ended, decide what action to take ---
+
+    // Action 1: Vertical swipe from top of the screen to go to Today
+    if (isVertical && yDir > 0 && my > 80 && iy < 150) {
+      if (!isToday(viewDate)) {
+        controls.start({ opacity: 0, transition: { duration: 0.15 } }).then(goToToday);
+      } else {
+        // Jiggle if already on today, and snap back horizontally
+        controls.start({ x: 0, y: [0, -20, 0], transition: { duration: 0.3 } });
+      }
+      return;
+    }
+
+    // Action 2: Horizontal swipe on the agenda card to change day
+    const dragThreshold = (containerRef.current?.offsetWidth || 500) / 3.5;
+    if (targetIsAgenda && !isVertical && Math.abs(mx) > dragThreshold) {
+      const direction = xDir > 0 ? 1 : -1;
+
+      if (direction === 1) { // Swiping right to previous day
+        const yesterday = subDays(new Date(), 1);
+        if (!isAfter(startOfDay(viewDate), startOfDay(yesterday))) {
+          controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } }); // Snap back
+          return;
+        }
+      }
+
+      controls.start({ x: direction * 500, opacity: 0, transition: { duration: 0.15 } }).then(() => {
+        if (direction === 1) previousDay(); else nextDay();
+        controls.set({ x: -direction * 500 }); // Prepare for animate in
+      });
+    } else {
+      // Action 3: Invalid swipe, snap back to center
+      controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } });
     }
   };
 
-  const cardBind = useDrag(cardDragHandler, { axis: 'x' });
+  const bind = useDrag(dragHandler);
 
   const handleCompleteAll = () => {
     completeAllTasks(viewDate);
@@ -90,7 +111,7 @@ export default function HomeScreen() {
   const scheduledTasks = tasksForDate.filter(t => t.task.recurrence.type !== 'daily');
 
   return (
-    <div className="container mx-auto p-4 md:p-8 flex flex-col flex-grow" ref={containerRef}>
+    <div {...bind() as any} className="container mx-auto p-4 md:p-8 flex flex-col flex-grow overflow-x-hidden" ref={containerRef} style={{ touchAction: 'none' }}>
       <header className="mb-8">
         <h1 className="text-4xl font-bold tracking-tighter">{getGreeting()}, User</h1>
         <p className="text-lg text-muted-foreground mt-2">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
@@ -98,7 +119,7 @@ export default function HomeScreen() {
 
       <motion.div animate={controls} className="flex flex-col flex-grow">
         <main className="flex flex-col flex-grow">
-          <Card {...cardBind() as any} ref={agendaCardRef} className="cursor-grab active:cursor-grabbing" style={{ touchAction: 'pan-x' }}>
+          <Card ref={agendaCardRef} className="cursor-grab active:cursor-grabbing">
             <CardHeader>
               <div className="flex justify-between items-center gap-4">
                 <div>
