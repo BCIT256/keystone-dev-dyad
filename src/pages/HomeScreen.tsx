@@ -41,6 +41,7 @@ export default function HomeScreen() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
+  const agendaCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchTasks();
@@ -51,14 +52,15 @@ export default function HomeScreen() {
     controls.start({ opacity: 1, x: 0, transition: { duration: 0.25, ease: "easeOut" } });
   }, [viewDate, controls]);
 
-  const dragHandler: Handler<'drag'> = ({ active, movement: [mx, my], direction: [xDir, yDir], initial: [, iy] }) => {
+  const dragHandler: Handler<'drag'> = ({ event, active, movement: [mx, my], direction: [xDir, yDir], initial: [, iy] }) => {
     if (active) {
       controls.start({ x: mx, opacity: 1 - Math.abs(mx) / (containerRef.current?.offsetWidth || 500), immediate: true });
     } else {
       const dragThreshold = (containerRef.current?.offsetWidth || 500) / 3.5;
       const isVerticalSwipe = Math.abs(my) > Math.abs(mx);
+      const targetIsAgenda = agendaCardRef.current?.contains(event.target as Node);
 
-      // Swipe down to refresh to today, only from top of screen (e.g., first 150px)
+      // Swipe down to refresh to today, only from top of screen
       if (isVerticalSwipe && yDir > 0 && my > 80 && iy < 150) {
         if (!isToday(viewDate)) {
           controls.start({ opacity: 0, transition: { duration: 0.15 } }).then(goToToday);
@@ -68,15 +70,14 @@ export default function HomeScreen() {
         return;
       }
 
-      // Horizontal swipe to change day
-      if (!isVerticalSwipe && Math.abs(mx) > dragThreshold) {
+      // Horizontal swipe to change day, only if target was agenda
+      if (targetIsAgenda && !isVerticalSwipe && Math.abs(mx) > dragThreshold) {
         const direction = xDir > 0 ? 1 : -1;
 
         // Prevent swiping to a day before yesterday
         if (direction === 1) { // Swiping right to previous day
           const yesterday = subDays(new Date(), 1);
           if (!isAfter(startOfDay(viewDate), startOfDay(yesterday))) {
-            // On or before yesterday, so snap back
             controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } });
             return;
           }
@@ -91,7 +92,7 @@ export default function HomeScreen() {
           controls.set({ x: -direction * 500 }); // Set position for slide-in
         });
       } else {
-        // Snap back to center if not dragged far enough
+        // Snap back to center if not a valid gesture
         controls.start({ x: 0, opacity: 1, transition: { duration: 0.25 } });
       }
     }
@@ -108,15 +109,15 @@ export default function HomeScreen() {
   const scheduledTasks = tasksForDate.filter(t => t.task.recurrence.type !== 'daily');
 
   return (
-    <div className="container mx-auto p-4 md:p-8 flex flex-col flex-grow overflow-x-hidden" ref={containerRef}>
+    <div {...bind() as any} className="container mx-auto p-4 md:p-8 flex flex-col flex-grow overflow-x-hidden" ref={containerRef} style={{ touchAction: 'pan-y' }}>
       <header className="mb-8">
         <h1 className="text-4xl font-bold tracking-tighter">{getGreeting()}, User</h1>
         <p className="text-lg text-muted-foreground mt-2">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
       </header>
 
-      <motion.div {...bind() as any} animate={controls} className="cursor-grab active:cursor-grabbing" style={{ touchAction: 'pan-y' }}>
+      <motion.div animate={controls} className="flex flex-col flex-grow">
         <main className="flex flex-col flex-grow">
-          <Card>
+          <Card ref={agendaCardRef} className="cursor-grab active:cursor-grabbing">
             <CardHeader>
               <div className="flex justify-between items-center gap-4">
                 <div>
@@ -174,24 +175,24 @@ export default function HomeScreen() {
             </CardContent>
           </Card>
         </main>
-      </motion.div>
 
-      <div className="mt-auto pt-8">
-        <div className="flex justify-center">
-          <img src="/placeholder.svg" alt="Artwork" className="w-full max-w-md h-56 object-cover rounded-xl bg-muted" />
+        <div className="mt-auto pt-8">
+          <div className="flex justify-center">
+            <img src="/placeholder.svg" alt="Artwork" className="w-full max-w-md h-56 object-cover rounded-xl bg-muted" />
+          </div>
+
+          {currentQuote && (
+            <figure className="my-8 text-center max-w-md mx-auto">
+              <blockquote className="font-dancing-script text-2xl italic text-foreground">
+                “{currentQuote.quoteText}”
+              </blockquote>
+              <figcaption className="mt-2 text-sm text-muted-foreground">
+                — {currentQuote.attributedAuthor}
+              </figcaption>
+            </figure>
+          )}
         </div>
-
-        {currentQuote && (
-          <figure className="my-8 text-center max-w-md mx-auto">
-            <blockquote className="font-dancing-script text-2xl italic text-foreground">
-              “{currentQuote.quoteText}”
-            </blockquote>
-            <figcaption className="mt-2 text-sm text-muted-foreground">
-              — {currentQuote.attributedAuthor}
-            </figcaption>
-          </figure>
-        )}
-      </div>
+      </motion.div>
 
       <AddTaskButton onClick={() => setIsModalOpen(true)} adsVisible={adsVisible} />
       <AddTaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
