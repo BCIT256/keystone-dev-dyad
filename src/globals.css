@@ -5,28 +5,28 @@
 @layer base {
   :root {
     /* New Color Palette - Light Mode */
-    --background: 0 0% 100%; /* White */
+    --background: 0 0% 100%; /* White - Kept for elements like the nav bar */
     --foreground: 224 71% 4%; /* Dark Blue-Gray */
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 45 74% 90%; /* Pale Yellow - Used for app background via AppNavigator */
+    --muted-foreground: 45 5% 40%; /* Warmer dark gray */
 
-    --popover: 0 0% 100%;
+    --popover: 45 20% 97%; /* Off-white */
     --popover-foreground: 224 71% 4%;
 
-    --card: 0 0% 100%;
+    --card: 45 20% 97%; /* Off-white */
     --card-foreground: 224 71% 4%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
+    --border: 45 10% 88%; /* Warm Gray */
+    --input: 45 10% 88%; /* Warm Gray */
 
     --primary: 221 83% 53%; /* Bright Blue */
     --primary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 220 14% 96%; /* Light Gray */
+    --secondary: 45 20% 97%; /* Off-white */
     --secondary-foreground: 224 71% 4%; /* Dark Blue-Gray */
 
-    --accent: 220 14% 96%;
+    --accent: 45 60% 92%; /* Slightly more saturated yellow for hover */
     --accent-foreground: 224 71% 4%;
 
     --destructive: 0 84% 60%; /* Red */
