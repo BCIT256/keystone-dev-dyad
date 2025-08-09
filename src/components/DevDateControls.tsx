@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from './ui/label';
 
 export function DevDateControls() {
-  const { currentDate, nextDay, previousDay, setCurrentDate } = useTaskStore();
-  const [year, setYear] = useState(currentDate.getFullYear().toString());
-  const [month, setMonth] = useState((currentDate.getMonth() + 1).toString());
-  const [day, setDay] = useState(currentDate.getDate().toString());
+  const { viewDate, nextDay, previousDay, setCurrentDate } = useTaskStore();
+  const [year, setYear] = useState(viewDate.getFullYear().toString());
+  const [month, setMonth] = useState((viewDate.getMonth() + 1).toString());
+  const [day, setDay] = useState(viewDate.getDate().toString());
 
   const handleGoToDate = () => {
     const newDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));

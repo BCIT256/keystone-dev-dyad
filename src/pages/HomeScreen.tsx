@@ -1,12 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { useTaskStore } from '@/state/taskStore';
-import { format } from 'date-fns';
+import { format, isToday, isYesterday, isTomorrow } from 'date-fns';
 import { TaskItem } from '@/components/TaskItem';
 import { AddTaskButton } from '@/components/AddTaskButton';
 import { AddTaskModal } from '@/components/AddTaskModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DevDateControls } from '@/components/DevDateControls';
 import { Separator } from '@/components/ui/separator';
 import { useDrag, Handler } from '@use-gesture/react';
 import { motion, useAnimation } from 'framer-motion';
@@ -22,8 +21,15 @@ const getGreeting = () => {
   return "Good Evening";
 };
 
+const getAgendaTitle = (date: Date) => {
+  if (isToday(date)) return "Today's Agenda";
+  if (isYesterday(date)) return "Yesterday's Agenda";
+  if (isTomorrow(date)) return "Tomorrow's Agenda";
+  return `Agenda for ${format(date, 'MMMM d')}`;
+};
+
 export default function HomeScreen() {
-  const { fetchTasks, getTasksForDate, isLoading, currentDate, adsVisible, nextDay, previousDay, completeAllTasks } = useTaskStore();
+  const { fetchTasks, getTasksForDate, isLoading, viewDate, adsVisible, nextDay, previousDay, completeAllTasks } = useTaskStore();
   const { currentQuote, setDailyQuote } = useQuoteStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const controls = useAnimation();
@@ -60,10 +66,10 @@ export default function HomeScreen() {
   });
 
   const handleCompleteAll = () => {
-    completeAllTasks(currentDate);
+    completeAllTasks(viewDate);
   };
 
-  const tasksForDate = getTasksForDate(currentDate);
+  const tasksForDate = getTasksForDate(viewDate);
   const dailyTasks = tasksForDate.filter(t => t.task.recurrence.type === 'daily');
   const scheduledTasks = tasksForDate.filter(t => t.task.recurrence.type !== 'daily');
 
@@ -71,7 +77,7 @@ export default function HomeScreen() {
     <div className="container mx-auto p-4 md:p-8 flex flex-col flex-grow overflow-x-hidden" ref={containerRef}>
       <header className="mb-8">
         <h1 className="text-4xl font-bold tracking-tighter">{getGreeting()}, User</h1>
-        <p className="text-lg text-muted-foreground mt-2">{format(currentDate, 'EEEE, MMMM d, yyyy')}</p>
+        <p className="text-lg text-muted-foreground mt-2">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
       </header>
 
       <motion.div {...bind() as any} animate={controls} className="cursor-grab active:cursor-grabbing" style={{ touchAction: 'pan-y' }}>
@@ -95,7 +101,7 @@ export default function HomeScreen() {
             <CardHeader>
               <div className="flex justify-between items-center gap-4">
                 <div>
-                  <CardTitle className="text-xl">Today's Agenda</CardTitle>
+                  <CardTitle className="text-xl">{getAgendaTitle(viewDate)}</CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">🔥 5-day streak!</p>
                 </div>
                 <div className="flex items-center gap-1 flex-shrink-0">
@@ -135,7 +141,7 @@ export default function HomeScreen() {
                     <div>
                       <h3 className="text-sm font-semibold text-muted-foreground px-6 pt-4 pb-2">Scheduled Tasks</h3>
                       {scheduledTasks.map(({ task, isComplete }) => (
-                        <TaskItem key={task.id} task={task} isComplete={isComplete} />
+                        <TaskItem key={task.id} task={task} isComplete={is_complete} />
                       ))}
                     </div>
                   )}
@@ -152,9 +158,6 @@ export default function HomeScreen() {
       </motion.div>
 
       <div className="flex-grow" />
-      <div className="pt-8">
-        <DevDateControls />
-      </div>
 
       <AddTaskButton onClick={() => setIsModalOpen(true)} adsVisible={adsVisible} />
       <AddTaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />

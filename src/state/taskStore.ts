@@ -1,14 +1,14 @@
 import { create } from 'zustand';
 import { Task, TaskCompletion } from '../types';
 import { TaskRepository } from '../api/taskRepository';
-import { format, getDay, getDate, addDays, subDays, endOfMonth } from 'date-fns';
+import { format, getDay, getDate, addDays, subDays, endOfMonth, isToday, isYesterday, isTomorrow } from 'date-fns';
 import { showSuccess } from '@/utils/toast';
 
 interface TaskState {
   tasks: Task[];
   completions: TaskCompletion[];
   isLoading: boolean;
-  currentDate: Date;
+  viewDate: Date;
   adsVisible: boolean;
   getTasksForDate: (date: Date) => { task: Task; isComplete: boolean }[];
   addTask: (task: Omit<Task, 'id' | 'userId' | 'createdAt'>) => Promise<void>;
@@ -44,7 +44,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   tasks: [],
   completions: [],
   isLoading: true,
-  currentDate: new Date(),
+  viewDate: new Date(),
   adsVisible: true,
 
   fetchTasks: async () => {
@@ -160,15 +160,25 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   },
 
   nextDay: () => {
-    set(state => ({ currentDate: addDays(state.currentDate, 1) }));
+    set(state => {
+      if (isToday(state.viewDate) || isYesterday(state.viewDate)) {
+        return { viewDate: addDays(state.viewDate, 1) };
+      }
+      return {};
+    });
   },
 
   previousDay: () => {
-    set(state => ({ currentDate: subDays(state.currentDate, 1) }));
+    set(state => {
+      if (isToday(state.viewDate) || isTomorrow(state.viewDate)) {
+        return { viewDate: subDays(state.viewDate, 1) };
+      }
+      return {};
+    });
   },
 
   setCurrentDate: (date: Date) => {
-    set({ currentDate: date });
+    set({ viewDate: date });
   },
 
   hideAds: () => {
