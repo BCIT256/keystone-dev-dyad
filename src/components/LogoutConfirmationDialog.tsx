@@ -10,12 +10,21 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { showSuccess } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 export function LogoutConfirmationDialog() {
-  const handleLogout = () => {
-    // In a real app, you would call your auth service here.
-    showSuccess("You have been logged out.");
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      showError(`Logout failed: ${error.message}`);
+    } else {
+      showSuccess("You have been logged out.");
+      navigate('/login', { replace: true });
+    }
   };
 
   return (
@@ -27,7 +36,7 @@ export function LogoutConfirmationDialog() {
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
           <AlertDialogDescription>
-            You will be returned to the login screen. Any unsaved changes will be lost.
+            You will be returned to the login screen.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
