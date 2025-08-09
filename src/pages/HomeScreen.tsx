@@ -41,7 +41,6 @@ export default function HomeScreen() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const controls = useAnimation();
   const containerRef = useRef<HTMLDivElement>(null);
-  const agendaCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchTasks();
@@ -103,9 +102,13 @@ export default function HomeScreen() {
         <p className="text-lg text-muted-foreground mt-2">{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
       </header>
 
-      <motion.div animate={controls} className="flex flex-col flex-grow">
-        <main className="flex flex-col flex-grow">
-          <Card ref={agendaCardRef} {...bind() as any} className="cursor-grab active:cursor-grabbing" style={{ touchAction: 'pan-y' }}>
+      <main className="flex flex-col flex-grow">
+        <motion.div 
+          animate={controls} 
+          {...bind() as any} 
+          style={{ touchAction: 'pan-y' }}
+        >
+          <Card className="cursor-grab active:cursor-grabbing">
             <CardHeader>
               <div className="flex justify-between items-center gap-4">
                 <div>
@@ -162,7 +165,7 @@ export default function HomeScreen() {
               )}
             </CardContent>
           </Card>
-        </main>
+        </motion.div>
 
         <div className="mt-auto pt-8">
           <div className="flex justify-center">
@@ -180,7 +183,7 @@ export default function HomeScreen() {
             </figure>
           )}
         </div>
-      </motion.div>
+      </main>
 
       <AddTaskButton onClick={() => setIsModalOpen(true)} adsVisible={adsVisible} />
       <AddTaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
