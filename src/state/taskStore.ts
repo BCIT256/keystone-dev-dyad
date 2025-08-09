@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Task, TaskCompletion } from '../types';
 import { TaskRepository } from '../api/taskRepository';
-import { format, getDay, getDate, addDays, subDays, endOfMonth, isToday, isYesterday, isTomorrow } from 'date-fns';
+import { format, getDay, getDate, addDays, subDays, endOfMonth, isToday, isYesterday, isTomorrow, isAfter, startOfDay } from 'date-fns';
 import { showSuccess } from '@/utils/toast';
 
 interface TaskState {
@@ -16,6 +16,7 @@ interface TaskState {
   fetchTasks: () => Promise<void>;
   nextDay: () => void;
   previousDay: () => void;
+  goToToday: () => void;
   setCurrentDate: (date: Date) => void;
   hideAds: () => void;
   completeAllTasks: (date: Date) => Promise<void>;
@@ -160,22 +161,21 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   },
 
   nextDay: () => {
-    set(state => {
-      if (isToday(state.viewDate) || isYesterday(state.viewDate)) {
-        return { viewDate: addDays(state.viewDate, 1) };
-      }
-      return {};
-    });
+    set(state => ({ viewDate: addDays(state.viewDate, 1) }));
   },
 
   previousDay: () => {
     set(state => {
-      if (isToday(state.viewDate) || isTomorrow(state.viewDate)) {
-        return { viewDate: subDays(state.viewDate, 1) };
+      const yesterday = subDays(new Date(), 1);
+      // Do nothing if we are on or before yesterday
+      if (!isAfter(startOfDay(state.viewDate), startOfDay(yesterday))) {
+        return {};
       }
-      return {};
+      return { viewDate: subDays(state.viewDate, 1) };
     });
   },
+  
+  goToToday: () => set({ viewDate: new Date() }),
 
   setCurrentDate: (date: Date) => {
     set({ viewDate: date });

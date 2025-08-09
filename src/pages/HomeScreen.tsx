@@ -25,11 +25,18 @@ const getAgendaTitle = (date: Date) => {
   if (isToday(date)) return "Today's Agenda";
   if (isYesterday(date)) return "Yesterday's Agenda";
   if (isTomorrow(date)) return "Tomorrow's Agenda";
-  return `Agenda for ${format(date, 'MMMM d')}`;
+  
+  const day = format(date, 'd');
+  let suffix = 'th';
+  if (day.endsWith('1') && !day.endsWith('11')) suffix = 'st';
+  else if (day.endsWith('2') && !day.endsWith('12')) suffix = 'nd';
+  else if (day.endsWith('3') && !day.endsWith('13')) suffix = 'rd';
+  
+  return `${format(date, 'MMMM d')}${suffix}'s Agenda`;
 };
 
 export default function HomeScreen() {
-  const { fetchTasks, getTasksForDate, isLoading, viewDate, adsVisible, nextDay, previousDay, completeAllTasks } = useTaskStore();
+  const { fetchTasks, getTasksForDate, isLoading, viewDate, adsVisible, nextDay, previousDay, goToToday, completeAllTasks } = useTaskStore();
   const { currentQuote, setDailyQuote } = useQuoteStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const controls = useAnimation();
@@ -40,30 +47,51 @@ export default function HomeScreen() {
     setDailyQuote();
   }, [fetchTasks, setDailyQuote]);
 
-  const dragHandler: Handler<'drag'> = ({ active, down, movement: [mx], direction: [xDir] }) => {
-    const dragDistance = Math.abs(mx);
-    const dragThreshold = (containerRef.current?.clientWidth ?? 300) / 4;
+  useEffect(() => {
+    controls.start({ opacity: 1, x: 0, transition: { duration: 0.4, ease: "easeOut" } });
+  }, [viewDate, controls]);
 
-    if (!active && dragDistance > dragThreshold) {
-      if (xDir > 0) {
-        previousDay();
-      } else {
-        nextDay();
+  const dragHandler: Handler<'drag'> = ({ active, movement: [mx, my], direction: [xDir, yDir], cancel }) => {
+    if (active) {
+      // If swipe is mostly vertical, cancel to allow native scrolling
+      if (Math.abs(my) > Math.abs(mx) * 2) {
+        cancel();
+        return;
       }
-      controls.start({ x: 0, opacity: 1, transition: { duration: 0.3 } });
+      controls.start({ x: mx, opacity: 1 - Math.abs(mx) / (containerRef.current?.offsetWidth || 500), immediate: true });
     } else {
-      controls.start({
-        x: down ? mx : 0,
-        opacity: down ? 1 - dragDistance / 300 : 1,
-        transition: { duration: 0 }
-      });
+      const dragThreshold = (containerRef.current?.offsetWidth || 500) / 3.5;
+      const isVerticalSwipe = Math.abs(my) > Math.abs(mx);
+
+      // Swipe down to refresh to today
+      if (isVerticalSwipe && yDir > 0 && my > 80) {
+        if (!isToday(viewDate)) {
+          controls.start({ opacity: 0, transition: { duration: 0.2 } }).then(goToToday);
+        } else {
+          controls.start({ y: [0, -20, 0], transition: { duration: 0.3 } }); // Jiggle if already on today
+        }
+        return;
+      }
+
+      // Horizontal swipe to change day
+      if (!isVerticalSwipe && Math.abs(mx) > dragThreshold) {
+        const direction = xDir > 0 ? 1 : -1;
+        controls.start({ x: direction * 500, opacity: 0, transition: { duration: 0.2 } }).then(() => {
+          if (direction === 1) {
+            previousDay();
+          } else {
+            nextDay();
+          }
+          controls.set({ x: -direction * 500 }); // Set position for slide-in
+        });
+      } else {
+        // Snap back to center if not dragged far enough
+        controls.start({ x: 0, opacity: 1 });
+      }
     }
   };
 
-  const bind = useDrag(dragHandler, {
-    axis: 'x',
-    threshold: 10,
-  });
+  const bind = useDrag(dragHandler);
 
   const handleCompleteAll = () => {
     completeAllTasks(viewDate);
